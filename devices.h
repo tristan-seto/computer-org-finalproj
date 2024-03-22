@@ -15,13 +15,9 @@ volatile unsigned int * const buttons = ((volatile unsigned int *) 0xFF200050);
 
 struct hex_display {
     volatile unsigned int hex[6];
-}
+};
 
 struct hex_display * const HEXs = ((struct hex_display *) 0xFF200020);
-
-volatile unsigned int hex_decoder(int num){
-    
-}
 
 // the audio device
 struct audio_t { 
