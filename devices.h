@@ -13,8 +13,21 @@ volatile unsigned int * const LEDs = ((volatile unsigned int *) 0xFF200000);
 
 volatile unsigned int * const buttons = ((volatile unsigned int *) 0xFF200050);
 
+// HEX DECODER
+#define HEX_0 0x3F
+#define HEX_1 0x06
+#define HEX_2 0x5B
+#define HEX_3 0x4F
+#define HEX_4 0x66
+#define HEX_5 0x6D
+#define HEX_6 0x7D
+#define HEX_7 0x07
+#define HEX_8 0x7F
+#define HEX_9 0x6F
+
 struct hex_display {
-    volatile unsigned int hex[6];
+    // access for HEX[3:0]
+    volatile unsigned char hex[4];
 };
 
 struct hex_display * const HEXs = ((struct hex_display *) 0xFF200020);
