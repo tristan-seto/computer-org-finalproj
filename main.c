@@ -10,20 +10,39 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
-#include "devices.h"
+//#include "devices.h"
+
+// for testing purposes reduce reliance on devices.h
+// CPULator does not allow includes
+#ifndef DEVICES_H
+#define DEVICES_H
+
+volatile unsigned int * const LEDs = ((volatile unsigned int *) 0xFF200000);
+
+volatile unsigned int * const KEYs = ((volatile unsigned int *) 0xFF200050);
+
+#endif /* DEVICES_H */
 
 // Global Variables here
 int pixel_buffer_start; // global variable location of frame buffer
+int timer; // time remaining
 
-const int first_dish_x = 13; // starting x position of first dish to be made
-const int first_dish_y = 14; //starting y position of first dish to be made
-const int second_dish_x = 64; //starting x position of second dish to be made
-const int second_dish_y = 4; //starting y position of second dish to be made
-const int third_dish_x = 105; //starting x position of third dish to be made
-const int third_dish_y = 4; //starting y position of third dish to be made
-const int fourth_dish_x = 147; //starting x position of fourth dish to be made
-const int fourth_dish_y = 4; //starting y position of fourth dish to be made
+struct coordinates {
+    int x;
+    int y;   
+};
 
+struct coordinates dish_coordinates[4];
+struct coordinates chef_coordinates;
+
+struct pizza {
+    bool complete;
+    bool veg;
+    bool pepperoni;
+    bool bacon;
+};
+
+struct pizza orders[4];
 
 const uint16_t start_page[240][320]; //array for start page
 const uint16_t background[240][320]; //array for background
@@ -43,11 +62,12 @@ const uint16_t chef_with_tomato[89][83]; //array for chef holding vegetables
 const uint16_t chef_with_pepperoni[89][83]; //array for chef holding pepperoni
 const uint16_t chef_with_bacon[89][83]; //array for chef holding bacon
 
-const int chef_initial_x_position = 120;
-const int chef_initial_y_position = 72;
-
 
 // Function Declarations here
+
+void initialize_coordinates();
+
+// Drawing Functions
 void plot_pixel(int x, int y, short int line_color);
 void draw_start (); //draws the start screen
 void draw_background (); //draws the background
@@ -67,6 +87,10 @@ void draw_chef_with_tomato (int x, int y); //draws chef holding vegetables at po
 void draw_chef_with_pepperoni (int x, int y); //draws chef holding pepperoni at position x, y
 void draw_chef_with_bacon (int x, int y);  //draws chef holding bacon at position x, y
 
+// Timer Functions
+void timer_start();
+int get_time();
+
 
 // Main Function
 
@@ -75,7 +99,90 @@ int main(void)
 	volatile int * pixel_ctrl_ptr = (int *)0xFF203020; // pointer to the base
 
 	pixel_buffer_start = *pixel_ctrl_ptr;
+    initialize_coordinates();
+    // draw the opening screen
+    draw_start();
 
+    // wait for start button to be pressed
+    while(1){
+        //if(/* start button pressed */) break;
+
+        // * KEYs FOR TESTING *
+        int edge_cap = *(KEYs + 3); // read from edge capture register
+		if((edge_cap & 0x1) == 0x1){ // KEY0 pressed
+			*(KEYs + 3) = 0x1; // clear edge register
+            break;
+        }
+    }
+
+    while(1){ // new game started of game
+        int point_counter = 0;
+
+        // initialize game
+        //struct pizza current_pizza; // pizza should be initialized within the game: will keep getting reset
+        chef_coordinates.x = 120; // set initial coordinates of chef
+        chef_coordinates.y = 72;
+
+        // draw the background & ingredients
+        draw_background ();
+
+        // draw the chef
+        draw_chef(chef_coordinates.x, chef_coordinates.y);
+
+        // initialize the timer
+        timer_start(); // have not figured out how to do timers yet so :D
+
+        while(get_time() != 0){
+            //if(/* key pressed */){   // check for a key press
+                // which key was pressed?
+                // if (L/R arrow keys), update chef position (can model with KEYs [1:0])
+                // if (space), check chef x coordinate to pick up or drop an item (can model with KEY[2])
+                // if dish to send 
+
+            //}
+        // update timer
+        // redraw everything (including time, chef position, status of dishes)
+        }
+        
+
+        // after loop: game over
+        // freeze current game state and write GAME OVER, display current score & start over & terminate button
+        /*while(!startOver || !terminate);
+        if(startOver) continue; // return to the top of the game loop
+        if(terminate) break; // end the loop, return from the program
+        */
+
+    }
+
+    // program terminated
+    return 0;
+
+}
+
+void initialize_coordinates(){
+    // dish coordinates
+    dish_coordinates[0].x = 13; // starting x position of first dish to be made
+    dish_coordinates[0].y = 14; //starting y position of first dish to be made
+    dish_coordinates[1].x = 64; //starting x position of second dish to be made
+    dish_coordinates[1].y = 4; //starting y position of second dish to be made
+    dish_coordinates[2].x = 105; //starting x position of third dish to be made
+    dish_coordinates[2].y = 4; //starting y position of third dish to be made
+    dish_coordinates[3].x = 147; //starting x position of fourth dish to be made
+    dish_coordinates[3].y = 4; //starting y position of fourth dish to be made
+
+    // chef coordinates
+
+    chef_coordinates.x = 120;
+    chef_coordinates.y = 72;
+}
+
+void timer_start(){
+    timer = 100;
+}
+
+int get_time(){
+    timer--; // for now call get_time() to decrement timer 
+    return timer;
 }
 
 

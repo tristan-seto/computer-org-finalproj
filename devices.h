@@ -8,6 +8,8 @@
 
 */
 
+#ifndef DEVICES_H
+#define DEVICES_H
 // global variables
 volatile unsigned int * const LEDs = ((volatile unsigned int *) 0xFF200000);
 
@@ -64,3 +66,4 @@ struct videoout_t {
        volatile unsigned int StatusControl;
 };
 
+#endif /* DEVICES_H */
