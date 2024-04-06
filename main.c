@@ -124,19 +124,20 @@ int main(void)
     draw_start();
 
     // wait for start button to be pressed
-    while(1){
+    while(1) {
         //if(/* start button pressed */) break;
 
         // * KEYs FOR TESTING *
         int edge_cap = *(KEYs + 3); // read from edge capture register
-		if((edge_cap & 0x1) == 0x1){ // KEY0 pressed
+		if((edge_cap & 0x1) == 0x1) { // KEY0 pressed
 			*(KEYs + 3) = 0x1; // clear edge register
             break;
         }
     }
 
-    while(1){ // new game started of game
+    while(1) { // new game started of game
         struct pizza orders[4];
+        struct pizza current_order;
         int point_counter = 0;
         int completed_orders = 0;
 
@@ -146,15 +147,17 @@ int main(void)
         bool has_bacon = false;
 
         // initialize game
+        *LEDs = point_counter;
         //struct pizza current_pizza; // pizza should be initialized within the game: will keep getting reset
         chef_coordinates.x = 120; // set initial coordinates of chef
         chef_coordinates.y = 72;
 
         // initialize the orders
-        for(int i = 0; i < 4; i++){
+        for(int i = 0; i < 4; i++) {
             int pizza_type = rand() % 7 + 1; // 7 types, 8 to pick
-            initialize_pizza(orders + i, pizza_type);
+            if(pizza_type != 0) initialize_pizza(orders + i, pizza_type); // make sure the pizza isn't blank (it shouldn't be)
         }
+        initialize_pizza(&current_order, 0); // empty pizza
 
         // draw the background & ingredients
         draw_background ();
@@ -163,9 +166,8 @@ int main(void)
         draw_chef(chef_coordinates.x, chef_coordinates.y);
 
         // draw dishes to be drawn
-        for(int i = 0; i < 4; i++){
+        for(int i = 0; i < 4; i++) {
             draw_pizza(orders[i].type, pizza_coordinates[i].x, pizza_coordinates[i].y);
-            //draw(pizza_coordinates[i].x, pizza_coordinates[i].y);
         }
 
         // switch the frame buffer
@@ -174,8 +176,8 @@ int main(void)
         // initialize the timer
         timer_start(); // have not figured out how to do timers yet so :D
 
-        while(get_time() != 0){
-            //if(/* key pressed */){   // check for a key press
+        while(get_time() != 0) {
+            //if(/* key pressed */) {   // check for a key press
                 // which key was pressed?
                 // if (L/R arrow keys), update chef position (can model with KEYs [1:0])
                 // if (space), check chef x coordinate to pick up or drop an item (can model with KEY[2])
@@ -185,20 +187,94 @@ int main(void)
             
             // game logic modelled with buttons
             int edge_cap = *(KEYs + 3);
-            if(edge_cap != 0x0){ // check for a key press
+            if(edge_cap != 0x0) { // check for a key press
                 // which key was pressed?
-                if((edge_cap & 0x1) == 0x1){    // MODEL R
+                if((edge_cap & 0x1) == 0x1) {    // MODEL R
                     /* MOVE CHEF TO RIGHT */
-                } else if((edge_cap & 0x2) == 0x2 && chef_coordinates.x > 0){ // MODEL L
+                    if(chef_coordinates.x < X_MAX - 5) chef_coordinates.x += 10;
+                } else if((edge_cap & 0x2) == 0x2) { // MODEL L
                     /* MOVE CHEF TO LEFT */
-                } else if((edge_cap & 0x4) == 0x4){
+                    if(chef_coordinates.x >= 5) chef_coordinates.x -= 10;
+                } else if((edge_cap & 0x4) == 0x4) {
                     /* PICK UP/DROP ITEM */
+                    // check chef x-coordinate
+                    if(chef_coordinates.x < 60) {    // VEG SECTION
+                        if(!has_bacon && !has_pepperoni) // cannot have more than one ingredient at a time
+                        has_veg = !has_veg;
+                    } else if (chef_coordinates.x < 120) { // BACON SECTION
+                        if(!has_veg && !has_pepperoni) // cannot have more than one ingredient at a time
+                        has_bacon = !has_bacon;
+                    } else if (chef_coordinates.x < 180) { // PEPPERONI SECTION
+                        if(!has_veg && !has_bacon) // cannot have more than one ingredient at a time
+                        has_pepperoni = !has_pepperoni;
+                    } else {
+                        if(has_veg && !current_order.veg){
+                            has_veg = false;            // chef places ingredient on pizza
+                            current_order.veg = true;   // ingredient is now on pizza
+                            current_order.type += 1;    // update type (based on position of bool in 'type')
+                        } else if(has_pepperoni && !current_order.pepperoni){
+                            has_pepperoni = false;
+                            current_order.pepperoni = true;
+                            current_order.type += 2;
+                        } else if(has_bacon && !current_order.bacon){
+                            has_bacon = false;
+                            current_order.bacon = true;
+                            current_order.type += 4;
+                        }
+                    }
+
+                    // which item to pick-up drop-off? depends on chef x coordinate
+                } else if((edge_cap & 0x8) == 0x8) {
+                    /* ENTER ITEM */
+                    // do we want to check if the chef is in front of the item or not?
+                    current_order.complete = true;
+                    orders[0].complete = true;
+
+                    // check the status against the first order in the list to allocate points
+                    // score breakdown (toppings correct): 2 / 4 / 5 
+                    if(orders[0].type == current_order.type) point_counter += 5; // complete correct order
+                    else { // part points for getting one ingredient right
+                        if(orders[0].veg == current_order.veg) point_counter += 2; 
+                        if(orders[0].pepperoni == current_order.pepperoni) point_counter += 2;
+                        if(orders[0].bacon == current_order.bacon) point_counter += 2;
+                    }
+
+                    // clear the current order and move the next orders:
+                    initialize_pizza(&current_order, 0);
+                    for(int i = 0; i < 3; i++) {
+                        orders[i] = orders[i + 1];
+                    }
+                    // last space gets a new order!
+                    int pizza_type = rand() % 7 + 1; // 7 types, 8 to pick
+                    if(pizza_type != 0) initialize_pizza(orders + 3, pizza_type);
+
                 }
+                *(KEYs + 3) = 0xF; // clear edge capture register
                 
             }
 
             // update timer
             // redraw everything (including time, chef position, status of dishes)
+            // draw the background & ingredients
+            draw_background ();
+
+            // draw the chef
+            if(has_veg) draw_chef_with_tomato(chef_coordinates.x, chef_coordinates.y);
+            else if(has_bacon) draw_chef_with_bacon(chef_coordinates.x, chef_coordinates.y);
+            else if(has_pepperoni) draw_chef_with_pepperoni(chef_coordinates.x, chef_coordinates.y);
+            else draw_chef(chef_coordinates.x, chef_coordinates.y);
+
+            // draw the ingredients on the current pizza
+            if(current_order.veg) draw_vegi();
+            if(current_order.pepperoni) draw_pepperoni();
+            if(current_order.bacon) draw_bacon();
+
+            // draw dishes to be drawn
+            for(int i = 0; i < 4; i++) {
+                draw_pizza(orders[i].type, pizza_coordinates[i].x, pizza_coordinates[i].y);
+            }
+            
+            *LEDs = point_counter;
             // swap the frame buffer
         }
         
@@ -217,7 +293,7 @@ int main(void)
 
 }
 
-void initialize_coordinates(){
+void initialize_coordinates() {
     // dish coordinates
     pizza_coordinates[0].x = 13; // starting x position of first dish to be made
     pizza_coordinates[0].y = 14; //starting y position of first dish to be made
@@ -234,8 +310,8 @@ void initialize_coordinates(){
     chef_coordinates.y = 72;
 }
 
-void initialize_pizza(struct pizza * pizza, int type){
-    if(type <= 0 || type > 7) return; // invalid type, should be between 1 and 7
+void initialize_pizza(struct pizza * pizza, int type) {
+    if(type < 0 || type > 7) return; // invalid type, should be between 0 and 7
     
     pizza->type = type;
     pizza->complete = false;
@@ -247,11 +323,11 @@ void initialize_pizza(struct pizza * pizza, int type){
     return;
 }
 
-void timer_start(){
+void timer_start() {
     timer = 10000;
 }
 
-int get_time(){
+int get_time() {
     //timer--; // for now call get_time() to decrement timer 
     return timer;
 }
@@ -264,70 +340,70 @@ void plot_pixel(int x, int y, short int line_color)
 	*one_pixel_address = line_color;
 }
 
-void draw_start (){
+void draw_start () {
     int y, x;
     for (x = 0; x < 320; x++)
         for (y = 0; y < 240; y++)
             plot_pixel (x, y, start_page[y][x]);
 }
 
-void draw_background (){
+void draw_background () {
     int y, x;
     for (x = 0; x < 320; x++)
         for (y = 0; y < 240; y++)
             plot_pixel (x, y, background[y][x]);
 }
 
-void draw_end (){
+void draw_end () {
     int y, x;
     for (x = 0; x < 320; x++)
         for (y = 0; y < 240; y++)
             plot_pixel (x, y, end[y][x]);
 }
 
-void draw_chef (int x, int y){
+void draw_chef (int x, int y) {
     int a, b;
-    for (a = 0; a < 65; a++){
-        for (b = 0; b < 89; b++){
+    for (a = 0; a < 65; a++) {
+        for (b = 0; b < 89; b++) {
             if (chef[b][a] != 12777)
             plot_pixel (x+a, y+b, chef[b][a]);
         }
     }
 }
 
-void draw_vegi(){
+void draw_vegi() {
     int a, b;
-    for (a = 0; a < 81; a++){
-        for (b = 0; b < 50; b++){
+    for (a = 0; a < 81; a++) {
+        for (b = 0; b < 50; b++) {
             if (vegi_on_pizza[b][a] != 65535)
             plot_pixel (220+a, 174+b, vegi_on_pizza[b][a]);
         }
     }
 }
 
-void draw_pepperoni(){
+void draw_pepperoni() {
     int a, b;
-    for (a = 0; a < 81; a++){
-        for (b = 0; b < 50; b++){
+    for (a = 0; a < 81; a++) {
+        for (b = 0; b < 50; b++) {
             if (pepperoni_on_pizza[b][a] != 65535)
             plot_pixel (220+a, 174+b, pepperoni_on_pizza[b][a]);
         }
     }
 }
 
-void draw_bacon(){
+void draw_bacon() {
     int a, b;
-    for (a = 0; a < 81; a++){
-        for (b = 0; b < 50; b++){
+    for (a = 0; a < 81; a++) {
+        for (b = 0; b < 50; b++) {
             if (bacon_on_pizza[b][a] != 65535)
             plot_pixel (221+a, 173+b, bacon_on_pizza[b][a]);
         }
     }
 }
 
-void draw_pizza(int type, int x, int y){
+void draw_pizza(int type, int x, int y) {
     //unsigned short int * pizza[35][35];
-    switch(type){
+    switch(type) {
         case 1:
         draw_vegi_pizza(x, y);
         break;
@@ -362,70 +438,70 @@ void draw_pizza(int type, int x, int y){
 }
 
 
-void draw_pep_pizza(int x, int y){
+void draw_pep_pizza(int x, int y) {
     int a, b;
-    for (a = 0; a < 35; a++){
-        for (b = 0; b < 35; b++){
+    for (a = 0; a < 35; a++) {
+        for (b = 0; b < 35; b++) {
             if (pep_pizza[b][a] != 65535)
             plot_pixel (x+a, y+b, pep_pizza[b][a]);
         }
     }
 }
 
-void draw_pep_bacon_pizza(int x, int y){
+void draw_pep_bacon_pizza(int x, int y) {
     int a, b;
-    for (a = 0; a < 35; a++){
-        for (b = 0; b < 35; b++){
+    for (a = 0; a < 35; a++) {
+        for (b = 0; b < 35; b++) {
             if (pep_bacon_pizza[b][a] != 65535)
             plot_pixel (x+a, y+b, pep_bacon_pizza[b][a]);
         }
     }
 }
 
-void draw_all_pizza(int x, int y){
+void draw_all_pizza(int x, int y) {
     int a, b;
-    for (a = 0; a < 35; a++){
-        for (b = 0; b < 35; b++){
+    for (a = 0; a < 35; a++) {
+        for (b = 0; b < 35; b++) {
             if (all_pizza[b][a] != 65535)
             plot_pixel (x+a, y+b, all_pizza[b][a]);
         }
     }
 }
 
-void draw_pep_vegi_pizza(int x, int y){
+void draw_pep_vegi_pizza(int x, int y) {
     int a, b;
-    for (a = 0; a < 35; a++){
-        for (b = 0; b < 35; b++){
+    for (a = 0; a < 35; a++) {
+        for (b = 0; b < 35; b++) {
             if (pep_vegi_pizza[b][a] != 65535)
             plot_pixel (x+a, y+b, pep_vegi_pizza[b][a]);
         }
     }
 }
 
-void draw_vegi_pizza(int x, int y){
+void draw_vegi_pizza(int x, int y) {
     int a, b;
-    for (a = 0; a < 35; a++){
-        for (b = 0; b < 35; b++){
+    for (a = 0; a < 35; a++) {
+        for (b = 0; b < 35; b++) {
             if (vegi_pizza[b][a] != 65535)
             plot_pixel (x+a, y+b, vegi_pizza[b][a]);
         }
     }
 }
 
-void draw_vegi_bacon_pizza(int x, int y){
+void draw_vegi_bacon_pizza(int x, int y) {
     int a, b;
-    for (a = 0; a < 35; a++){
-        for (b = 0; b < 35; b++){
+    for (a = 0; a < 35; a++) {
+        for (b = 0; b < 35; b++) {
             if (vegi_bacon_pizza[b][a] != 65535)
             plot_pixel (x+a, y+b, vegi_bacon_pizza[b][a]);
         }
     }
 }
 
-void draw_bacon_pizza(int x, int y){
+void draw_bacon_pizza(int x, int y) {
     int a, b;
-    for (a = 0; a < 35; a++){
-        for (b = 0; b < 35; b++){
+    for (a = 0; a < 35; a++) {
+        for (b = 0; b < 35; b++) {
             if (bacon_pizza[b][a] != 65535)
             plot_pixel (x+a, y+b, bacon_pizza[b][a]);
         }
@@ -433,30 +509,30 @@ void draw_bacon_pizza(int x, int y){
 }
 
 
-void draw_chef_with_tomato (int x, int y){
+void draw_chef_with_tomato (int x, int y) {
     int a, b;
-    for (a = 0; a < 83; a++){
-        for (b = 0; b < 89; b++){
+    for (a = 0; a < 83; a++) {
+        for (b = 0; b < 89; b++) {
             if (chef_with_tomato[b][a] != 17136)
             plot_pixel (x+a, y+b, chef_with_tomato[b][a]);
         }
     }
 }
 
-void draw_chef_with_pepperoni (int x, int y){
+void draw_chef_with_pepperoni (int x, int y) {
     int a, b;
-    for (a = 0; a < 83; a++){
-        for (b = 0; b < 89; b++){
+    for (a = 0; a < 83; a++) {
+        for (b = 0; b < 89; b++) {
             if (chef_with_pepperoni[b][a] != 17136)
             plot_pixel (x+a, y+b, chef_with_pepperoni[b][a]);
         }
     }
 }
 
-void draw_chef_with_bacon (int x, int y){
+void draw_chef_with_bacon (int x, int y) {
     int a, b;
-    for (a = 0; a < 83; a++){
-        for (b = 0; b < 89; b++){
+    for (a = 0; a < 83; a++) {
+        for (b = 0; b < 89; b++) {
             if (chef_with_bacon[b][a] != 17136)
             plot_pixel (x+a, y+b, chef_with_bacon[b][a]);
         }
