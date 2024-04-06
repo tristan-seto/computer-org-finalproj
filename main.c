@@ -25,6 +25,7 @@ volatile unsigned int * const KEYs = ((volatile unsigned int *) 0xFF200050);
 
 #define X_MAX 320
 #define Y_MAX 240
+#define CLOCK_FRQ 100000000
 
 // Global Variables here
 int pixel_buffer_start; // global variable location of frame buffer
@@ -35,7 +36,7 @@ struct coordinates {
     int y;   
 };
 
-struct coordinates dish_coordinates[4];
+struct coordinates pizza_coordinates[4];
 struct coordinates chef_coordinates;
 
 struct pizza {
@@ -43,52 +44,68 @@ struct pizza {
     bool veg;
     bool pepperoni;
     bool bacon;
+    int type; // combination of the three bool variables to use for status
 };
-
-struct pizza orders[4];
 
 const uint16_t start_page[240][320]; //array for start page
 const uint16_t background[240][320]; //array for background
 const uint16_t end[240][320]; //array for end page
+
 const uint16_t chef[89][65]; //array for chef
-const uint16_t vegi_on_pizza[50][81]; //array for vegetable on pizza
-const uint16_t pepperoni_on_pizza[50][81]; //array for pepperoni on pizza
-const uint16_t bacon_on_pizza[50][81]; //array for bacon on pizza
-const uint16_t pep_pizza[35][35]; // array for pepperoni pizza on top (pizza to be made)
-const uint16_t pep_bacon_pizza[35][35]; // array for pepperonin and bacon pizza on top (pizza to be made)
-const uint16_t all_pizza[35][35]; // array for everything pizza on top (pizza to be made)
-const uint16_t pep_vegi_pizza[35][35]; // array for pepperonin and vegetable pizza on top (pizza to be made)
-const uint16_t vegi_pizza[35][35]; // array for vegetable pizza on top (pizza to be made)
-const uint16_t vegi_bacon_pizza[35][35]; // array for vegetable and bacon pizza on top (pizza to be made)
-const uint16_t bacon_pizza[35][35]; // array for bacon pizza on top (pizza to be made)
 const uint16_t chef_with_tomato[89][83]; //array for chef holding vegetables
 const uint16_t chef_with_pepperoni[89][83]; //array for chef holding pepperoni
 const uint16_t chef_with_bacon[89][83]; //array for chef holding bacon
+
+//uint16_t * chef_types[4] = {chef, chef_with_tomato, chef_with_pepperoni, chef_with_bacon};
+
+const uint16_t vegi_on_pizza[50][81]; //array for vegetable on pizza
+const uint16_t pepperoni_on_pizza[50][81]; //array for pepperoni on pizza
+const uint16_t bacon_on_pizza[50][81]; //array for bacon on pizza
+
+// orders, treat like 3-var bool function: [bacon | pepperoni | veg]
+const uint16_t vegi_pizza[35][35]; // array for vegetable pizza on top (pizza to be made)
+const uint16_t pep_pizza[35][35]; // array for pepperoni pizza on top (pizza to be made)
+const uint16_t pep_vegi_pizza[35][35]; // array for pepperonin and vegetable pizza on top (pizza to be made)
+const uint16_t bacon_pizza[35][35]; // array for bacon pizza on top (pizza to be made)
+const uint16_t vegi_bacon_pizza[35][35]; // array for vegetable and bacon pizza on top (pizza to be made)
+const uint16_t pep_bacon_pizza[35][35]; // array for pepperonin and bacon pizza on top (pizza to be made)
+const uint16_t all_pizza[35][35]; // array for everything pizza on top (pizza to be made)
+
+// pizza types, ordered with 3-var bool function [bacon | pepperoni | veg] (this does not work, pointer incompatible)
+//uint16_t * pizza_types[8] = {NULL, vegi_pizza, pep_pizza, pep_vegi_pizza, bacon_pizza, vegi_bacon_pizza, pep_bacon_pizza, all_pizza};
+
 
 
 // Function Declarations here
 
 void initialize_coordinates();
+void initialize_pizza(struct pizza * pizza, int type);
 
 // Drawing Functions
 void plot_pixel(int x, int y, short int line_color);
 void draw_start (); //draws the start screen
 void draw_background (); //draws the background
 void draw_end (); //draws the end game screen
+
+// workspace
 void draw_chef (int x, int y); //draws chef at position x, y
-void draw_vegi(); // draws vegetables on the pizza currently being made
-void draw_pepperoni(); // draws pepperoni on the pizza currently being made
-void draw_bacon(); // draws bacon on the pizza currently being made
-void draw_pep_pizza(int x, int y); // draws pepperoni pizza to be made on the top at a certain position
-void draw_pep_bacon_pizza(int x, int y); // draws pepperoni and bacon pizza to be made on the top at a certain position
-void draw_all_pizza(int x, int y); // draws everything pizza to be made on the top at a certain position
-void draw_pep_vegi_pizza(int x, int y); // draws pepperoni and vegetable pizza to be made on the top at a certain position
-void draw_vegi_pizza(int x, int y); // draws vegetable pizza to be made on the top at a certain position
-void draw_vegi_bacon_pizza(int x, int y); // draws vegetable and bacon pizza to be made on the top at a certain position
-void draw_bacon_pizza(int x, int y); // draws bacon pizza to be made on the top at a certain position
 void draw_chef_with_tomato (int x, int y); //draws chef holding vegetables at position x, y
 void draw_chef_with_pepperoni (int x, int y); //draws chef holding pepperoni at position x, y
 void draw_chef_with_bacon (int x, int y);  //draws chef holding bacon at position x, y
+
+void draw_vegi(); // draws vegetables on the pizza currently being made
+void draw_pepperoni(); // draws pepperoni on the pizza currently being made
+void draw_bacon(); // draws bacon on the pizza currently being made
+
+// orders, treat like 3-var bool function: [bacon | pepperoni | veg]
+void draw_pizza(int type, int x, int y);
+void draw_vegi_pizza(int x, int y); // draws vegetable pizza to be made on the top at a certain position
+void draw_pep_pizza(int x, int y); // draws pepperoni pizza to be made on the top at a certain position
+void draw_pep_vegi_pizza(int x, int y); // draws pepperoni and vegetable pizza to be made on the top at a certain position
+void draw_bacon_pizza(int x, int y); // draws bacon pizza to be made on the top at a certain position
+void draw_vegi_bacon_pizza(int x, int y); // draws vegetable and bacon pizza to be made on the top at a certain position
+void draw_pep_bacon_pizza(int x, int y); // draws pepperoni and bacon pizza to be made on the top at a certain position
+void draw_all_pizza(int x, int y); // draws everything pizza to be made on the top at a certain position
 
 // Timer Functions
 void timer_start();
@@ -119,13 +136,25 @@ int main(void)
     }
 
     while(1){ // new game started of game
+        struct pizza orders[4];
         int point_counter = 0;
         int completed_orders = 0;
+
+        // to determine the status of the chef
+        bool has_veg = false;
+        bool has_pepperoni = false;
+        bool has_bacon = false;
 
         // initialize game
         //struct pizza current_pizza; // pizza should be initialized within the game: will keep getting reset
         chef_coordinates.x = 120; // set initial coordinates of chef
         chef_coordinates.y = 72;
+
+        // initialize the orders
+        for(int i = 0; i < 4; i++){
+            int pizza_type = rand() % 7 + 1; // 7 types, 8 to pick
+            initialize_pizza(orders + i, pizza_type);
+        }
 
         // draw the background & ingredients
         draw_background ();
@@ -135,7 +164,8 @@ int main(void)
 
         // draw dishes to be drawn
         for(int i = 0; i < 4; i++){
-            //draw(dish_coordinates[i].x, dish_coordinates[i].y);
+            draw_pizza(orders[i].type, pizza_coordinates[i].x, pizza_coordinates[i].y);
+            //draw(pizza_coordinates[i].x, pizza_coordinates[i].y);
         }
 
         // switch the frame buffer
@@ -161,7 +191,7 @@ int main(void)
                     /* MOVE CHEF TO RIGHT */
                 } else if((edge_cap & 0x2) == 0x2 && chef_coordinates.x > 0){ // MODEL L
                     /* MOVE CHEF TO LEFT */
-                } else if((edge_cap) & 0x4 == 0x4){
+                } else if((edge_cap & 0x4) == 0x4){
                     /* PICK UP/DROP ITEM */
                 }
                 
@@ -189,14 +219,14 @@ int main(void)
 
 void initialize_coordinates(){
     // dish coordinates
-    dish_coordinates[0].x = 13; // starting x position of first dish to be made
-    dish_coordinates[0].y = 14; //starting y position of first dish to be made
-    dish_coordinates[1].x = 64; //starting x position of second dish to be made
-    dish_coordinates[1].y = 4; //starting y position of second dish to be made
-    dish_coordinates[2].x = 105; //starting x position of third dish to be made
-    dish_coordinates[2].y = 4; //starting y position of third dish to be made
-    dish_coordinates[3].x = 147; //starting x position of fourth dish to be made
-    dish_coordinates[3].y = 4; //starting y position of fourth dish to be made
+    pizza_coordinates[0].x = 13; // starting x position of first dish to be made
+    pizza_coordinates[0].y = 14; //starting y position of first dish to be made
+    pizza_coordinates[1].x = 64; //starting x position of second dish to be made
+    pizza_coordinates[1].y = 4; //starting y position of second dish to be made
+    pizza_coordinates[2].x = 105; //starting x position of third dish to be made
+    pizza_coordinates[2].y = 4; //starting y position of third dish to be made
+    pizza_coordinates[3].x = 147; //starting x position of fourth dish to be made
+    pizza_coordinates[3].y = 4; //starting y position of fourth dish to be made
 
     // chef coordinates
 
@@ -204,12 +234,25 @@ void initialize_coordinates(){
     chef_coordinates.y = 72;
 }
 
+void initialize_pizza(struct pizza * pizza, int type){
+    if(type <= 0 || type > 7) return; // invalid type, should be between 1 and 7
+    
+    pizza->type = type;
+    pizza->complete = false;
+
+    pizza->veg = (bool) ((type & 0x1) == 0x1);
+    pizza->pepperoni = (bool) ((type & 0x2) == 0x2);
+    pizza->bacon = (bool) ((type & 0x4) == 0x4);
+    
+    return;
+}
+
 void timer_start(){
-    timer = 100;
+    timer = 10000;
 }
 
 int get_time(){
-    timer--; // for now call get_time() to decrement timer 
+    //timer--; // for now call get_time() to decrement timer 
     return timer;
 }
 
@@ -282,6 +325,43 @@ void draw_bacon(){
     }
 }
 
+void draw_pizza(int type, int x, int y){
+    //uint16_t * pizza[35][35];
+    switch(type){
+        case 1:
+        draw_vegi_pizza(x, y);
+        break;
+
+        case 2:
+        draw_pep_pizza(x, y);
+        break;
+
+        case 3:
+        draw_pep_vegi_pizza(x, y);
+        break;
+
+        case 4:
+        draw_bacon_pizza(x, y);
+        break;
+
+        case 5:
+        draw_vegi_bacon_pizza(x, y);
+        break;
+
+        case 6:
+        draw_pep_bacon_pizza(x, y);
+        break;
+
+        case 7:
+        draw_all_pizza(x, y);
+        break;
+
+        default:
+        return;
+    }
+}
+
+
 void draw_pep_pizza(int x, int y){
     int a, b;
     for (a = 0; a < 35; a++){
@@ -351,6 +431,7 @@ void draw_bacon_pizza(int x, int y){
         }
     }
 }
+
 
 void draw_chef_with_tomato (int x, int y){
     int a, b;
