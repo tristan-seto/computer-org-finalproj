@@ -207,7 +207,7 @@ int main(void)
                 // which key was pressed?
                 if((edge_cap & 0x1) == 0x1) {    // MODEL R
                     /* MOVE CHEF TO RIGHT */
-                    if(chef_coordinates.x < X_MAX - 5) chef_coordinates.x += 10;
+                    if(chef_coordinates.x < X_MAX - 50) chef_coordinates.x += 10;
                 } else if((edge_cap & 0x2) == 0x2) { // MODEL L
                     /* MOVE CHEF TO LEFT */
                     if(chef_coordinates.x >= 5) chef_coordinates.x -= 10;
