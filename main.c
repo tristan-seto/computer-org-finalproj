@@ -23,6 +23,9 @@ volatile unsigned int * const KEYs = ((volatile unsigned int *) 0xFF200050);
 
 #endif /* DEVICES_H */
 
+#define X_MAX 320
+#define Y_MAX 240
+
 // Global Variables here
 int pixel_buffer_start; // global variable location of frame buffer
 int timer; // time remaining
@@ -117,6 +120,7 @@ int main(void)
 
     while(1){ // new game started of game
         int point_counter = 0;
+        int completed_orders = 0;
 
         // initialize game
         //struct pizza current_pizza; // pizza should be initialized within the game: will keep getting reset
@@ -129,6 +133,14 @@ int main(void)
         // draw the chef
         draw_chef(chef_coordinates.x, chef_coordinates.y);
 
+        // draw dishes to be drawn
+        for(int i = 0; i < 4; i++){
+            //draw(dish_coordinates[i].x, dish_coordinates[i].y);
+        }
+
+        // switch the frame buffer
+        /* TO BE IMPLEMENTED */
+
         // initialize the timer
         timer_start(); // have not figured out how to do timers yet so :D
 
@@ -140,8 +152,24 @@ int main(void)
                 // if dish to send 
 
             //}
-        // update timer
-        // redraw everything (including time, chef position, status of dishes)
+            
+            // game logic modelled with buttons
+            int edge_cap = *(KEYs + 3);
+            if(edge_cap != 0x0){ // check for a key press
+                // which key was pressed?
+                if((edge_cap & 0x1) == 0x1){    // MODEL R
+                    /* MOVE CHEF TO RIGHT */
+                } else if((edge_cap & 0x2) == 0x2 && chef_coordinates.x > 0){ // MODEL L
+                    /* MOVE CHEF TO LEFT */
+                } else if((edge_cap) & 0x4 == 0x4){
+                    /* PICK UP/DROP ITEM */
+                }
+                
+            }
+
+            // update timer
+            // redraw everything (including time, chef position, status of dishes)
+            // swap the frame buffer
         }
         
 
