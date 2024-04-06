@@ -149,6 +149,9 @@ int main(void)
 			*(KEYs + 3) = 0x1; // clear edge register
             break;
         }
+		draw_start();
+		wait_for_vsync(); 
+    	pixel_buffer_start = *(pixel_ctrl_ptr + 1); 
     }
 
     while(1) { // new game started of game
