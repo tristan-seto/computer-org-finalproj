@@ -31,6 +31,12 @@ volatile unsigned int * const KEYs = ((volatile unsigned int *) 0xFF200050);
 int pixel_buffer_start; // global variable location of frame buffer
 int timer; // time remaining
 
+volatile int pixel_buffer_start; 
+
+//double buffering
+short int Buffer1[240][512];
+short int Buffer2[240][512];
+
 struct coordinates {
     int x;
     int y;   
@@ -82,6 +88,7 @@ void initialize_coordinates();
 void initialize_pizza(struct pizza * pizza, int type);
 
 // Drawing Functions
+void wait_for_vsync();
 void plot_pixel(int x, int y, short int line_color);
 void draw_start (); //draws the start screen
 void draw_background (); //draws the background
@@ -118,7 +125,16 @@ int main(void)
 {
 	volatile int * pixel_ctrl_ptr = (int *)0xFF203020; // pointer to the base
 
-	pixel_buffer_start = *pixel_ctrl_ptr;
+	// Set up the first buffer
+    *(pixel_ctrl_ptr + 1) = (int)Buffer1;
+    wait_for_vsync(); // Swap front and back buffers
+    pixel_buffer_start = *pixel_ctrl_ptr; // New back buffer
+
+    // Set up the second buffer
+    *(pixel_ctrl_ptr + 1) = (int)Buffer2;
+    pixel_buffer_start = *(pixel_ctrl_ptr + 1); // We will draw on the back buffer
+
+
     initialize_coordinates();
     // draw the opening screen
     draw_start();
@@ -256,6 +272,10 @@ int main(void)
             // update timer
             // redraw everything (including time, chef position, status of dishes)
             // draw the background & ingredients
+			clear_chef();
+			clear_chef_with_bacon();
+			clear_chef_with_pepperoni();
+			clear_chef_with_tomato();
             draw_background ();
 
             // draw the chef
@@ -275,7 +295,10 @@ int main(void)
             }
             
             *LEDs = point_counter;
+
             // swap the frame buffer
+			wait_for_vsync(); 
+        	pixel_buffer_start = *(pixel_ctrl_ptr + 1); 
         }
         
 
@@ -291,6 +314,14 @@ int main(void)
     // program terminated
     return 0;
 
+}
+
+void wait_for_vsync() {
+    volatile int *pixel_ctrl_ptr = (int *)0xFF203020;
+    *pixel_ctrl_ptr = 1; // Start the synchronization process
+
+    // Wait for the S bit to become 0 again
+    while (*(pixel_ctrl_ptr + 3) & 0x1);
 }
 
 void initialize_coordinates() {
@@ -367,6 +398,16 @@ void draw_chef (int x, int y) {
         for (b = 0; b < 89; b++) {
             if (chef[b][a] != 12777)
             plot_pixel (x+a, y+b, chef[b][a]);
+        }
+    }
+}
+
+void clear_chef (int x, int y) {
+    int a, b;
+    for (a = 0; a < 65; a++) {
+        for (b = 0; b < 89; b++) {
+            //if (chef[b][a] != 12777)
+            plot_pixel (x+a, y+b, background[b][a]);
         }
     }
 }
@@ -519,6 +560,15 @@ void draw_chef_with_tomato (int x, int y) {
     }
 }
 
+void clear_chef_with_tomato (int x, int y) {
+    int a, b;
+    for (a = 0; a < 83; a++) {
+        for (b = 0; b < 89; b++) {
+            plot_pixel (x+a, y+b, background[b][a]);
+        }
+    }
+}
+
 void draw_chef_with_pepperoni (int x, int y) {
     int a, b;
     for (a = 0; a < 83; a++) {
@@ -529,12 +579,30 @@ void draw_chef_with_pepperoni (int x, int y) {
     }
 }
 
+void clear_chef_with_pepperoni (int x, int y) {
+    int a, b;
+    for (a = 0; a < 83; a++) {
+        for (b = 0; b < 89; b++) {
+            plot_pixel (x+a, y+b, background[b][a]);
+        }
+    }
+}
+
 void draw_chef_with_bacon (int x, int y) {
     int a, b;
     for (a = 0; a < 83; a++) {
         for (b = 0; b < 89; b++) {
             if (chef_with_bacon[b][a] != 17136)
             plot_pixel (x+a, y+b, chef_with_bacon[b][a]);
+        }
+    }
+}
+
+void clear_chef_with_bacon (int x, int y) {
+    int a, b;
+    for (a = 0; a < 83; a++) {
+        for (b = 0; b < 89; b++) {
+            plot_pixel (x+a, y+b, background[b][a]);
         }
     }
 }
