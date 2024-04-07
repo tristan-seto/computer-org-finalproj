@@ -497,8 +497,6 @@ int main(void)
 			draw_three_star();
 		}
 
-
-
         // swap the frame buffer
 		wait_for_vsync(); 
         pixel_buffer_start = *(pixel_ctrl_ptr + 1); 
@@ -525,14 +523,8 @@ int main(void)
 				}
 			}
         }
-        
-        /*while(!startOver || !terminate);
-        if(startOver) continue; // return to the top of the game loop
-        if(terminate) break; // end the loop, return from the program
-        */
 
     }
-
     // program terminated
     return 0;
 
@@ -548,17 +540,16 @@ void wait_for_vsync() {
 
 void initialize_coordinates() {
     // dish coordinates
-    pizza_coordinates[0].x = 13; // starting x position of first dish to be made
-    pizza_coordinates[0].y = 14; //starting y position of first dish to be made
-    pizza_coordinates[1].x = 64; //starting x position of second dish to be made
-    pizza_coordinates[1].y = 4; //starting y position of second dish to be made
-    pizza_coordinates[2].x = 105; //starting x position of third dish to be made
-    pizza_coordinates[2].y = 4; //starting y position of third dish to be made
-    pizza_coordinates[3].x = 147; //starting x position of fourth dish to be made
-    pizza_coordinates[3].y = 4; //starting y position of fourth dish to be made
+    pizza_coordinates[0].x = 13;    // starting x position of first dish to be made
+    pizza_coordinates[0].y = 14;    // starting y position of first dish to be made
+    pizza_coordinates[1].x = 64;    // starting x position of second dish to be made
+    pizza_coordinates[1].y = 4;     // starting y position of second dish to be made
+    pizza_coordinates[2].x = 105;   // starting x position of third dish to be made
+    pizza_coordinates[2].y = 4;     // starting y position of third dish to be made
+    pizza_coordinates[3].x = 147;   // starting x position of fourth dish to be made
+    pizza_coordinates[3].y = 4;     // starting y position of fourth dish to be made
 
     // chef coordinates
-
     chef_coordinates.x = 120;
     chef_coordinates.y = 72;
 }
@@ -594,63 +585,24 @@ int get_time() {
     return time;
 }
 
-/*
-// Implementation with Struct HEX *
-void display_hex(int num){
-    HEXs->hex[0] = hex_decode(num % 10);
-    
-    // iteration 1
-    num = num / 10;
-    if(num == 0){
-        HEXs->hex[1] = 0;
-        HEXs->hex[2] = 0;
-        HEXs->hex[3] = 0;
-        return;
-    } else {
-        HEXs->hex[1] = hex_decode(num % 10);
-    }
-
-    // iteration 2
-    num = num / 10;
-    if(num == 0){
-        HEXs->hex[2] = 0;
-        HEXs->hex[3] = 0;
-        return;
-    } else {
-        HEXs->hex[2] = hex_decode(num % 10);
-    }
-
-    // iteration 3
-    num = num / 10;
-    if(num == 0){
-        HEXs->hex[3] = 0;
-        return;
-    } else {
-        HEXs->hex[3] = hex_decode(num % 10);
-    }
-    
-}*/
-
-// Implementation with HEX[3:0] as just unsigned int
 void display_hex(int num){
     int digit_0 = 0;
     int digit_1 = 0;
     int digit_2 = 0;
     int digit_3 = 0;
 
-    digit_0 = hex_decode(num % 10);
-
-    // iteration 1
-    num = num / 10;
-    if(num != 0) digit_1 = hex_decode(num % 10);
+    digit_0 = hex_decode(num % 10); // digit 0
 
     num = num / 10;
-    if(num != 0) digit_2 = hex_decode(num % 10);
+    if(num != 0) digit_1 = hex_decode(num % 10); // digit 1, only if the rest are not 0
 
     num = num / 10;
-    if(num != 0) digit_3 = hex_decode(num % 10);
+    if(num != 0) digit_2 = hex_decode(num % 10); // digit 2, only if the rest are not 0
 
-    *HEXs = (digit_0 | (digit_1 << 8) | (digit_2 << 16) | (digit_3 << 24));
+    num = num / 10;
+    if(num != 0) digit_3 = hex_decode(num % 10); // digit 3, only if the rest are not 0
+
+    *HEXs = (digit_0 | (digit_1 << 8) | (digit_2 << 16) | (digit_3 << 24)); // combine with bitwise OR
 }
 
 int hex_decode(int num){
@@ -681,6 +633,124 @@ int hex_decode(int num){
     return decoded;
 }
 
+    /* SELECT DRAW FUNCTIONS */
+
+void set_time(int place, int number){
+	int x_loc = TIMER_ONE_X; // default in case
+	int y_loc = TIMER_Y;
+    switch(place){
+        case 1: x_loc = TIMER_ONE_X;
+        break;
+        case 2: x_loc = TIMER_TWO_X;
+        break;
+        case 3: x_loc = TIMER_THREE_X;
+        break;
+        default: return; // invalid, do not execute
+    }
+
+	switch(number){
+        case 0: draw_time0(x_loc, y_loc);
+        break;
+        case 1: draw_time1(x_loc, y_loc);
+        break;
+        case 2: draw_time2(x_loc, y_loc);
+        break;
+        case 3: draw_time3(x_loc, y_loc);
+        break;
+        case 4: draw_time4(x_loc, y_loc);
+        break;
+        case 5: draw_time5(x_loc, y_loc);
+        break;
+        case 6: draw_time6(x_loc, y_loc);
+        break;
+        case 7: draw_time7(x_loc, y_loc);
+        break;
+        case 8: draw_time8(x_loc, y_loc);
+        break;
+        case 9: draw_time9(x_loc, y_loc);
+        break;
+        default: return;
+    }
+
+}
+
+void set_point(int place, int number){
+	int x_loc = POINT_ONE_X; // default just in case
+	int y_loc = POINT_Y;
+
+    switch(place){
+        case 1: x_loc = POINT_ONE_X;
+        break;
+        case 10: x_loc = POINT_TEN_X;
+        break;
+        case 100: x_loc = POINT_HUNDRED_X;
+        break;
+        case 1000: x_loc = POINT_THOUSAND_X;
+        break;
+        default: return; // invalid, do not draw
+    }
+
+    switch(number){
+        case 0: draw_point0(x_loc, y_loc);
+        break;
+        case 1: draw_point1(x_loc, y_loc);
+        break;
+        case 2: draw_point2(x_loc, y_loc);
+        break;
+        case 3: draw_point3(x_loc, y_loc);
+        break;
+        case 4: draw_point4(x_loc, y_loc);
+        break;
+        case 5: draw_point5(x_loc, y_loc);
+        break;
+        case 6: draw_point6(x_loc, y_loc);
+        break;
+        case 7: draw_point7(x_loc, y_loc);
+        break;
+        case 8: draw_point8(x_loc, y_loc);
+        break;
+        case 9: draw_point9(x_loc, y_loc);
+        break;
+        default: return;
+    }
+}
+
+void draw_pizza(int type, int x, int y) {
+    //unsigned short int * pizza[35][35];
+    switch(type) {
+        case 1: draw_vegi_pizza(x, y);
+        break;
+        case 2: draw_pep_pizza(x, y);
+        break;
+        case 3: draw_pep_vegi_pizza(x, y);
+        break;
+        case 4: draw_bacon_pizza(x, y);
+        break;
+        case 5: draw_vegi_bacon_pizza(x, y);
+        break;
+        case 6: draw_pep_bacon_pizza(x, y);
+        break;
+        case 7: draw_all_pizza(x, y);
+        break;
+        default: return;
+    }
+}
+
+void draw_count(int num){
+    switch(num){
+        case 1: draw_count_one();
+        break;
+        case 2: draw_count_two();
+        break;
+        case 3: draw_count_three();
+        break;
+        default: return;
+    }
+}
+
+
+
+    /* INDIVIDUAL DRAWING FUNCTIONS */
 
 void plot_pixel(int x, int y, short int line_color)
 {
@@ -716,97 +786,6 @@ void draw_chef (int x, int y) {
             plot_pixel (x+a, y+b, chef[b][a]);
         }
     }
-}
-
-void set_time(int place, int number){
-	int x_loc;
-	int y_loc = TIMER_Y;
-	if(place == 1){
-		x_loc = TIMER_ONE_X;
-	}
-	if(place == 2){
-		x_loc = TIMER_TWO_X;
-	}
-	if(place == 3){
-		x_loc = TIMER_THREE_X;
-	}
-	if (number == 0){
-		draw_time0(x_loc, y_loc);
-	}
-	if (number == 1){
-		draw_time1(x_loc, y_loc);
-	}
-	if (number == 2){
-		draw_time2(x_loc, y_loc);
-	}
-	if (number == 3){
-		draw_time3(x_loc, y_loc);
-	}
-	if (number == 4){
-		draw_time4(x_loc, y_loc);
-	}
-	if (number == 5){
-		draw_time5(x_loc, y_loc);
-	}
-	if (number == 6){
-		draw_time6(x_loc, y_loc);
-	}
-	if (number == 7){
-		draw_time7(x_loc, y_loc);
-	}
-	if (number == 8){
-		draw_time8(x_loc, y_loc);
-	}
-	if (number == 9){
-		draw_time9(x_loc, y_loc);
-	}
-}
-
-void set_point(int place, int number){
-	int x_loc;
-	int y_loc = POINT_Y;
-	if(place == 1){
-		x_loc = POINT_ONE_X;
-	}
-	if(place == 10){
-		x_loc = POINT_TEN_X;
-	}
-	if(place == 100){
-		x_loc = POINT_HUNDRED_X;
-	}
-	if(place == 1000){
-		x_loc = POINT_THOUSAND_X;
-	}
-	if (number == 0){
-		draw_point0(x_loc, y_loc);
-	}
-	if (number == 1){
-		draw_point1(x_loc, y_loc);
-	}
-	if (number == 2){
-		draw_point2(x_loc, y_loc);
-	}
-	if (number == 3){
-		draw_point3(x_loc, y_loc);
-	}
-	if (number == 4){
-		draw_point4(x_loc, y_loc);
-	}
-	if (number == 5){
-		draw_point5(x_loc, y_loc);
-	}
-	if (number == 6){
-		draw_point6(x_loc, y_loc);
-	}
-	if (number == 7){
-		draw_point7(x_loc, y_loc);
-	}
-	if (number == 8){
-		draw_point8(x_loc, y_loc);
-	}
-	if (number == 9){
-		draw_point9(x_loc, y_loc);
-	}
 }
 
 void clear_chef (int x, int y) {
@@ -848,43 +827,6 @@ void draw_bacon() {
         }
     }
 }
-
-void draw_pizza(int type, int x, int y) {
-    //unsigned short int * pizza[35][35];
-    switch(type) {
-        case 1:
-        draw_vegi_pizza(x, y);
-        break;
-
-        case 2:
-        draw_pep_pizza(x, y);
-        break;
-
-        case 3:
-        draw_pep_vegi_pizza(x, y);
-        break;
-
-        case 4:
-        draw_bacon_pizza(x, y);
-        break;
-
-        case 5:
-        draw_vegi_bacon_pizza(x, y);
-        break;
-
-        case 6:
-        draw_pep_bacon_pizza(x, y);
-        break;
-
-        case 7:
-        draw_all_pizza(x, y);
-        break;
-
-        default:
-        return;
-    }
-}
-
 
 void draw_pep_pizza(int x, int y) {
     int a, b;
@@ -1244,18 +1186,6 @@ void draw_one_star() {
     }
 }
 
-void draw_count(int num){
-    switch(num){
-        case 1: draw_count_one();
-        break;
-        case 2: draw_count_two();
-        break;
-        case 3: draw_count_three();
-        break;
-        default: return;
-    }
-}
-
 void draw_count_three(){
 	int a, b;
     for (a = 0; a < 30; a++) {
@@ -1285,6 +1215,8 @@ void draw_count_one(){
         }
     }
 }
+
+    /* VGA ARRAY DEFINTIONS */
 
 const unsigned short int count1[51][30] = {
 	{12777,12777,12777,12777,12777,12777,12777,12777,12777,12777,12777,12777,12777,12777,12777,12777,12777,0,0,0,0,0,0,0,0,12777,12777,12777,12777,12777},
