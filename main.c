@@ -25,6 +25,23 @@ volatile unsigned int* const PS2_ptr = ((volatile unsigned int*)0xff200100);
 
 volatile unsigned int* const pixel_ctrl_ptr = ((volatile unsigned int*)0xFF203020);
 
+struct hex_display {
+    // access for HEX[3:0]
+    volatile unsigned char hex[4];
+};
+
+struct hex_display * const HEXs = ((struct hex_display *) 0xFF200020);
+
+struct timer_device {
+    volatile unsigned int status;
+    volatile unsigned int control;
+    volatile unsigned int period_low;
+    volatile unsigned int period_high;
+    volatile unsigned int snapshot_low;
+    volatile unsigned int snapshot_high;
+};
+
+struct timer_device * const timer = ((struct timer_device *) 0xFF202000);
 
 #endif /* DEVICES_H */
 
@@ -36,10 +53,21 @@ volatile unsigned int* const pixel_ctrl_ptr = ((volatile unsigned int*)0xFF20302
 #define TIMER_THREE_X 293
 #define TIMER_Y 293
 
+// HEX DECODER
+#define HEX_0 0x3F
+#define HEX_1 0x06
+#define HEX_2 0x5B
+#define HEX_3 0x4F
+#define HEX_4 0x66
+#define HEX_5 0x6D
+#define HEX_6 0x7D
+#define HEX_7 0x07
+#define HEX_8 0x7F
+#define HEX_9 0x6F
+
 // Global Variables here
 volatile int pixel_buffer_start; // global variable location of frame buffer
-int timer; // time remaining
-
+int time; // time remaining
 
 //double buffering
 short int Buffer1[240][512];
@@ -145,7 +173,7 @@ void draw_time8(int x, int y);
 void draw_time9(int x, int y);
 
 // Timer Functions
-void timer_start();
+void initialize_timer(int frequency);
 int get_time();
 
 
@@ -153,8 +181,6 @@ int get_time();
 
 int main(void)
 {
-	
-
 	// Set up the first buffer
     *(pixel_ctrl_ptr + 1) = (int)Buffer1;
     wait_for_vsync(); // Swap front and back buffers
@@ -164,10 +190,13 @@ int main(void)
     *(pixel_ctrl_ptr + 1) = (int)Buffer2;
     pixel_buffer_start = *(pixel_ctrl_ptr + 1); // We will draw on the back buffer
 
-
     initialize_coordinates();
     // draw the opening screen
     draw_start();
+
+    // switch the frame buffer
+    wait_for_vsync(); 
+    pixel_buffer_start = *(pixel_ctrl_ptr + 1); 
 
     // wait for start button to be pressed
     while(1) {
@@ -179,9 +208,6 @@ int main(void)
 			*(KEYs + 3) = 0x1; // clear edge register
             break;
         }
-		draw_start();
-		wait_for_vsync(); 
-    	pixel_buffer_start = *(pixel_ctrl_ptr + 1); 
     }
 
     while(1) { // new game started of game
@@ -196,8 +222,6 @@ int main(void)
         bool has_bacon = false;
 
         // initialize game
-        *LEDs = point_counter;
-        //struct pizza current_pizza; // pizza should be initialized within the game: will keep getting reset
         chef_coordinates.x = 120; // set initial coordinates of chef
         chef_coordinates.y = 72;
 
@@ -220,11 +244,14 @@ int main(void)
         }
 
         // switch the frame buffer
-        /* TO BE IMPLEMENTED */
+        wait_for_vsync(); 
+        pixel_buffer_start = *(pixel_ctrl_ptr + 1); 
 
         // initialize the timer
-        timer_start(); // have not figured out how to do timers yet so :D
-
+        initialize_timer(CLOCK_FRQ);
+        *LEDs = get_time();
+        display_hex(get_time());
+        
         while(get_time() != 0) {
             //if(/* key pressed */) {   // check for a key press
                 // which key was pressed?
@@ -278,10 +305,12 @@ int main(void)
                     // do we want to check if the chef is in front of the item or not?
                     current_order.complete = true;
                     orders[0].complete = true;
+                    completed_orders++;
 
                     // check the status against the first order in the list to allocate points
                     // score breakdown (toppings correct): 2 / 4 / 5 
                     if(orders[0].type == current_order.type) point_counter += 5; // complete correct order
+                    else if(current_order.type == 0) completed_orders--; // user didn't do anything, skip.
                     else { // part points for getting one ingredient right
                         if(orders[0].veg == current_order.veg) point_counter += 2; 
                         if(orders[0].pepperoni == current_order.pepperoni) point_counter += 2;
@@ -323,8 +352,10 @@ int main(void)
             for(int i = 0; i < 4; i++) {
                 draw_pizza(orders[i].type, pizza_coordinates[i].x, pizza_coordinates[i].y);
             }
-            
-            *LEDs = point_counter;
+
+            // display time
+            *LEDs = get_time();
+            display_hex(get_time());
 
             // swap the frame buffer
 			wait_for_vsync(); 
@@ -334,6 +365,21 @@ int main(void)
 
         // after loop: game over
         // freeze current game state and write GAME OVER, display current score & start over & terminate button
+        draw_end();
+
+        // swap the frame buffer
+		wait_for_vsync(); 
+        pixel_buffer_start = *(pixel_ctrl_ptr + 1); 
+
+        while(1){ 
+            // * KEYs FOR TESTING *
+            int edge_cap = *(KEYs + 3); // read from edge capture register
+            if((edge_cap & 0x1) == 0x1) { // KEY0 pressed
+                *(KEYs + 3) = 0x1; // clear edge register
+                break; // will restart game
+            }
+        }
+        
         /*while(!startOver || !terminate);
         if(startOver) continue; // return to the top of the game loop
         if(terminate) break; // end the loop, return from the program
@@ -384,13 +430,86 @@ void initialize_pizza(struct pizza * pizza, int type) {
     return;
 }
 
-void timer_start() {
-    timer = 10000;
+void initialize_timer(int frequency) {
+    // the timer wi
+    timer->control = 0x8; // stop timer
+    timer->period_low = (frequency & 0xFFFF); // lower half of the clock frequency bits
+    timer->period_high = (frequency >> 16 & 0xFFFF); // higher half of the clock frequency bits
+    timer->control = 0x6; // start timer & make continuous
+    time = 100; // set start time to 100 (seconds)
 }
 
 int get_time() {
-    //timer--; // for now call get_time() to decrement timer 
-    return timer;
+    if((timer->status & 0x1) == 0x1){ // if a timeout was reached
+        timer->status = 0x0; // reset flag
+        time--;
+    }
+
+    if(time == 0) timer->control = 0x8; // stop timer if out of time
+    return time;
+}
+
+void display_hex(int num){
+    HEXs->hex[0] = hex_decode(num % 10);
+    
+    // iteration 1
+    num = num / 10;
+    if(num == 0){
+        HEXs->hex[1] = 0;
+        HEXs->hex[2] = 0;
+        HEXs->hex[3] = 0;
+        return;
+    } else {
+        HEXs->hex[1] = hex_decode(num % 10);
+    }
+
+    // iteration 2
+    num = num / 10;
+    if(num == 0){
+        HEXs->hex[2] = 0;
+        HEXs->hex[3] = 0;
+        return;
+    } else {
+        HEXs->hex[2] = hex_decode(num % 10);
+    }
+
+    // iteration 3
+    num = num / 10;
+    if(num == 0){
+        HEXs->hex[3] = 0;
+        return;
+    } else {
+        HEXs->hex[3] = hex_decode(num % 10);
+    }
+    
+}
+
+int hex_decode(int num){
+    int decoded = 0;
+    switch (num) {
+        case 0: decoded = HEX_0;
+        break;
+        case 1: decoded = HEX_1;
+        break;
+        case 2: decoded = HEX_2;
+        break;
+        case 3: decoded = HEX_3;
+        break;
+        case 4: decoded = HEX_4;
+        break;
+        case 5: decoded = HEX_5;
+        break;
+        case 6: decoded = HEX_6;
+        break;
+        case 7: decoded = HEX_7;
+        break;
+        case 8: decoded = HEX_8;
+        break;
+        case 9: decoded = HEX_9;
+        break;
+        default: decoded = 0;
+    }
+    return decoded;
 }
 
 
