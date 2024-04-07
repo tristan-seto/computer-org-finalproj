@@ -127,6 +127,8 @@ const unsigned short int vegi_bacon_pizza[35][35]; // array for vegetable and ba
 const unsigned short int pep_bacon_pizza[35][35]; // array for pepperonin and bacon pizza on top (pizza to be made)
 const unsigned short int all_pizza[35][35]; // array for everything pizza on top (pizza to be made)
 
+// different drawn numbers
+// points
 const unsigned short int point0[10][7];
 const unsigned short int point1[10][7];
 const unsigned short int point2[10][7];
@@ -138,6 +140,7 @@ const unsigned short int point7[10][7];
 const unsigned short int point8[10][7];
 const unsigned short int point9[10][7];
 
+// timer
 const unsigned short int timer0[16][10];
 const unsigned short int timer1[16][10];
 const unsigned short int timer2[16][10];
@@ -149,15 +152,13 @@ const unsigned short int timer7[16][10];
 const unsigned short int timer8[16][10];
 const unsigned short int timer9[16][10];
 
+// # of stars on end screen
 const unsigned short int star3[54][158];
 const unsigned short int star2[54][158];
 const unsigned short int star1[54][158];
 
+// PS2 Keyboard Variables
 char byte1 = 0, byte2 = 0, byte3 = 0;
-
-// pizza types, ordered with 3-var bool function [bacon | pepperoni | veg] (this does not work, pointer incompatible)
-//unsigned short int * pizza_types[8] = {NULL, vegi_pizza, pep_pizza, pep_vegi_pizza, bacon_pizza, vegi_bacon_pizza, pep_bacon_pizza, all_pizza};
-
 
 
 // Function Declarations here
@@ -196,7 +197,7 @@ void draw_pep_bacon_pizza(int x, int y); // draws pepperoni and bacon pizza to b
 void draw_all_pizza(int x, int y); // draws everything pizza to be made on the top at a certain position
 
 // Timer Functions
-void initialize_timer(int frequency);
+void initialize_timer(int frequency, int t);
 int get_time();
 
 // Numbers on the screen
@@ -223,10 +224,6 @@ void draw_point6(int x, int y);
 void draw_point7(int x, int y);
 void draw_point8(int x, int y);
 void draw_point9(int x, int y);
-
-// Timer Functions
-void initialize_timer(int frequency);
-int get_time();
 
 // HEX Decoder
 void display_hex(int num);
@@ -299,20 +296,36 @@ int main(void)
         }
         initialize_pizza(&current_order, 0); // empty pizza
 
-        // draw the background & ingredients
-        draw_background ();
 
-        // draw the chef
-        draw_chef(chef_coordinates.x, chef_coordinates.y);
+        // initialize the timer: 3 seconds start
+        initialize_timer(CLOCK_FRQ, 3);
+        int time_left = get_time();
+        while(time_left != 0){
+            // display 3, 2, 1 on screen
+            draw_background ();
 
-        // draw dishes to be drawn
-        for(int i = 0; i < 4; i++) {
-            draw_pizza(orders[i].type, pizza_coordinates[i].x, pizza_coordinates[i].y);
+            // draw the chef
+            draw_chef(chef_coordinates.x, chef_coordinates.y);
+
+            // draw dishes to be drawn
+            for(int i = 0; i < 4; i++) {
+                draw_pizza(orders[i].type, pizza_coordinates[i].x, pizza_coordinates[i].y);
+            }
+            
+            // play countdown sound if the number is different
+            if(time_left != get_time()){
+                time_left = get_time();
+                /* PLAY SOUND */
+            }
+
+            // swap the frame buffer
+			wait_for_vsync(); 
+        	pixel_buffer_start = *(pixel_ctrl_ptr + 1); 
         }
 
-        // initialize the timer
-        initialize_timer(CLOCK_FRQ);
-        int time_left = get_time();
+        // initialize timer for 120 seconds, actual start of game
+        initialize_timer(CLOCK_FRQ, 120);
+        time_left = get_time();
         *LEDs = time_left;
         set_time(1, time_left / 60);
         set_time(2, (time_left % 60) / 10);
@@ -326,13 +339,6 @@ int main(void)
         pixel_buffer_start = *(pixel_ctrl_ptr + 1); 
 
         while(get_time() != 0) {
-            //if(/* key pressed */) {   // check for a key press
-                // which key was pressed?
-                // if (L/R arrow keys), update chef position (can model with KEYs [1:0])
-                // if (space), check chef x coordinate to pick up or drop an item (can model with KEY[2])
-                // if dish to send 
-
-            //}
             
             // game logic modelled with buttons
             int PS2_data, RVALID;
@@ -413,11 +419,12 @@ int main(void)
                     if(pizza_type != 0) initialize_pizza(orders + 3, pizza_type);
 
                 }
-                //*(KEYs + 3) = 0xF; // clear edge capture register
                 
             }
 
             // update timer
+            time_left = get_time();
+
             // redraw everything (including time, chef position, status of dishes)
             // draw the background & ingredients
 
@@ -440,7 +447,6 @@ int main(void)
             }
 
             // display time
-            time_left = get_time();
             *LEDs = time_left;
             set_time(1, time_left / 60);
             set_time(2, (time_left % 60) / 10);
@@ -549,13 +555,12 @@ void initialize_pizza(struct pizza * pizza, int type) {
     return;
 }
 
-void initialize_timer(int frequency) {
-    // the timer wi
+void initialize_timer(int frequency, int t) {
     timer->control = 0x8; // stop timer
     timer->period_low = (frequency & 0xFFFF); // lower half of the clock frequency bits
     timer->period_high = (frequency >> 16 & 0xFFFF); // higher half of the clock frequency bits
     timer->control = 0x6; // start timer & make continuous
-    time = 120; // set start time to 120 (seconds)
+    time = t;
 }
 
 int get_time() {
