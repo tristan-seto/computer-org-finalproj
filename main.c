@@ -56,6 +56,7 @@ struct audio_t * const audio_p = ((struct audio_t *) 0xFF203040);
 #define X_MAX 320
 #define Y_MAX 240
 #define CLOCK_FRQ 100000000
+#define SAMPLE_RATE 8000
 #define TIMER_ONE_X 260
 #define TIMER_TWO_X 280
 #define TIMER_THREE_X 293
@@ -308,8 +309,8 @@ int main(void)
         initialize_pizza(&current_order, 0); // empty pizza
 
 
-        // initialize the timer: 3 seconds start
-        initialize_timer(CLOCK_FRQ, 3);
+        // initialize the timer: 5 seconds start (sounds play for 3 seconds)
+        initialize_timer(CLOCK_FRQ, 5);
         int time_left = get_time();
         while(time_left != 0){
             // display 3, 2, 1 on screen
@@ -323,11 +324,19 @@ int main(void)
                 draw_pizza(orders[i].type, pizza_coordinates[i].x, pizza_coordinates[i].y);
             }
             
-            // play countdown sound if the number is different
+            // play countdown sound if the number changes
             if(time_left != get_time()){
                 time_left = get_time();
-                /* PLAY SOUND */
+                int sample_period = (time_left == 0) ? SAMPLE_RATE / 2000 : SAMPLE_RATE / 1000;
+                for (int i = 0; i < 50 * sample_period; i++) {
+                    if ((audio_p->wsrc != 0) && (audio_p->wslc != 0)) {
+                    // output HIGH for first half of period and low for second half of period
+                        audio_p->ldata = ((i % sample_period) < sample_period / 2) ? 0x0FFFFFFF : 0;
+                        audio_p->rdata = ((i % sample_period) < sample_period / 2) ? 0x0FFFFFFF : 0;
+                    }
+                }
             }
+            set_time(3, time_left);
 
             // swap the frame buffer
 			wait_for_vsync(); 
