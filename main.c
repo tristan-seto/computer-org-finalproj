@@ -129,6 +129,8 @@ const unsigned short int timer7[16][10];
 const unsigned short int timer8[16][10];
 const unsigned short int timer9[16][10];
 
+char byte1 = 0, byte2 = 0, byte3 = 0;
+
 // pizza types, ordered with 3-var bool function [bacon | pepperoni | veg] (this does not work, pointer incompatible)
 //unsigned short int * pizza_types[8] = {NULL, vegi_pizza, pep_pizza, pep_vegi_pizza, bacon_pizza, vegi_bacon_pizza, pep_bacon_pizza, all_pizza};
 
@@ -166,6 +168,7 @@ void draw_vegi_bacon_pizza(int x, int y); // draws vegetable and bacon pizza to 
 void draw_pep_bacon_pizza(int x, int y); // draws pepperoni and bacon pizza to be made on the top at a certain position
 void draw_all_pizza(int x, int y); // draws everything pizza to be made on the top at a certain position
 
+void set_time(int place, int number);
 void draw_time0(int x, int y);
 void draw_time1(int x, int y);
 void draw_time2(int x, int y);
@@ -209,12 +212,24 @@ int main(void)
     // wait for start button to be pressed
     while(1) {
         //if(/* start button pressed */) break;
+		int PS2_data, RVALID;
+   		PS2_data = *(PS2_ptr); // read the Data register in the PS/2 port
+    	RVALID = PS2_data & 0x8000; // extract the RVALID field
+		if (RVALID) {
+			/* shift the next data byte into the display */
+			byte1 = byte2;
+			byte2 = byte3;
+			byte3 = PS2_data & 0xFF;
 
-        // * KEYs FOR TESTING *
-        int edge_cap = *(KEYs + 3); // read from edge capture register
-		if((edge_cap & 0x1) == 0x1) { // KEY0 pressed
-			*(KEYs + 3) = 0x1; // clear edge register
-            break;
+			volatile unsigned int twoParts;
+
+			twoParts = (byte2 << 8) | byte3;
+
+			//Check for key s
+			//makecode = 0xe074, breakcode = 0xe0f074
+			if((byte1 == (char)0x1B) && (byte2 == (char)0xF0) && (byte3 == (char)0x1B)){
+				break;
+			}
         }
     }
 
@@ -270,16 +285,29 @@ int main(void)
             //}
             
             // game logic modelled with buttons
-            int edge_cap = *(KEYs + 3);
-            if(edge_cap != 0x0) { // check for a key press
+            int PS2_data, RVALID;
+
+			PS2_data = *(PS2_ptr); // read the Data register in the PS/2 port
+			RVALID = PS2_data & 0x8000; // extract the RVALID field
+			
+			if (RVALID) { // check for a key press
+				
+				byte1 = byte2;
+				byte2 = byte3;
+				byte3 = PS2_data & 0xFF;
+
+				volatile unsigned int twoParts;
+
+				twoParts = (byte2 << 8) | byte3;
+
                 // which key was pressed?
-                if((edge_cap & 0x1) == 0x1) {    // MODEL R
+                if((byte1 == (char)0xE0) && (byte2 == (char)0xF0) && (byte3 == (char)0x74)) {    // MODEL R
                     /* MOVE CHEF TO RIGHT */
                     if(chef_coordinates.x < X_MAX - 50) chef_coordinates.x += 10;
-                } else if((edge_cap & 0x2) == 0x2) { // MODEL L
+                } else if((byte1 == (char)0xE0) && (byte2 == (char)0xF0) && (byte3 == (char)0x6B)) { // MODEL L
                     /* MOVE CHEF TO LEFT */
                     if(chef_coordinates.x >= 5) chef_coordinates.x -= 10;
-                } else if((edge_cap & 0x4) == 0x4) {
+                } else if((byte1 == (char)0x29) && (byte2 == (char)0xF0) && (byte3 == (char)0x29)) {
                     /* PICK UP/DROP ITEM */
                     // check chef x-coordinate
                     if(chef_coordinates.x < 60) {    // VEG SECTION
@@ -308,7 +336,7 @@ int main(void)
                     }
 
                     // which item to pick-up drop-off? depends on chef x coordinate
-                } else if((edge_cap & 0x8) == 0x8) {
+                } else if((byte1 == (char)0x5A) && (byte2 == (char)0xF0) && (byte3 == (char)0x5A)) {
                     /* ENTER ITEM */
                     // do we want to check if the chef is in front of the item or not?
                     current_order.complete = true;
@@ -335,7 +363,7 @@ int main(void)
                     if(pizza_type != 0) initialize_pizza(orders + 3, pizza_type);
 
                 }
-                *(KEYs + 3) = 0xF; // clear edge capture register
+                //*(KEYs + 3) = 0xF; // clear edge capture register
                 
             }
 
