@@ -499,7 +499,7 @@ void initialize_timer(int frequency) {
     timer->period_low = (frequency & 0xFFFF); // lower half of the clock frequency bits
     timer->period_high = (frequency >> 16 & 0xFFFF); // higher half of the clock frequency bits
     timer->control = 0x6; // start timer & make continuous
-    time = 100; // set start time to 100 (seconds)
+    time = 120; // set start time to 120 (seconds)
 }
 
 int get_time() {
