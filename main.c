@@ -185,7 +185,12 @@ void draw_vegi_bacon_pizza(int x, int y); // draws vegetable and bacon pizza to 
 void draw_pep_bacon_pizza(int x, int y); // draws pepperoni and bacon pizza to be made on the top at a certain position
 void draw_all_pizza(int x, int y); // draws everything pizza to be made on the top at a certain position
 
-void set_time(int place, int number);
+// Timer Functions
+void initialize_timer(int frequency);
+int get_time();
+
+// Numbers on the screen
+void set_time(int, int);
 void draw_time0(int x, int y);
 void draw_time1(int x, int y);
 void draw_time2(int x, int y);
@@ -295,15 +300,21 @@ int main(void)
             draw_pizza(orders[i].type, pizza_coordinates[i].x, pizza_coordinates[i].y);
         }
 
+        // initialize the timer
+        initialize_timer(CLOCK_FRQ);
+        int time_left = get_time();
+        *LEDs = time_left;
+        set_time(1, time_left / 60);
+        set_time(2, (time_left % 60) / 10);
+        set_time(3, time_left % 10);
+
+        // initialize point counter
+        display_hex(point_counter);
+
         // switch the frame buffer
         wait_for_vsync(); 
         pixel_buffer_start = *(pixel_ctrl_ptr + 1); 
 
-        // initialize the timer
-        initialize_timer(CLOCK_FRQ);
-        *LEDs = get_time();
-        display_hex(get_time());
-        
         while(get_time() != 0) {
             //if(/* key pressed */) {   // check for a key press
                 // which key was pressed?
@@ -419,8 +430,14 @@ int main(void)
             }
 
             // display time
-            *LEDs = get_time();
-            display_hex(get_time());
+            time_left = get_time();
+            *LEDs = time_left;
+            set_time(1, time_left / 60);
+            set_time(2, (time_left % 60) / 10);
+            set_time(3, time_left % 10);
+
+            // display score on HEX
+            display_hex(point_counter);
 
             // swap the frame buffer
 			wait_for_vsync(); 
@@ -515,7 +532,7 @@ void initialize_timer(int frequency) {
     timer->period_low = (frequency & 0xFFFF); // lower half of the clock frequency bits
     timer->period_high = (frequency >> 16 & 0xFFFF); // higher half of the clock frequency bits
     timer->control = 0x6; // start timer & make continuous
-    time = 100; // set start time to 100 (seconds)
+    time = 120; // set start time to 120 (seconds)
 }
 
 int get_time() {
@@ -661,7 +678,7 @@ void set_time(int place, int number){
 	if(place == 2){
 		x_loc = TIMER_TWO_X;
 	}
-	if(place == 1){
+	if(place == 3){
 		x_loc = TIMER_THREE_X;
 	}
 	if (number == 0){
