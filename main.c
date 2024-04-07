@@ -408,12 +408,26 @@ int main(void)
         pixel_buffer_start = *(pixel_ctrl_ptr + 1); 
 
         while(1){ 
-            // * KEYs FOR TESTING *
-            int edge_cap = *(KEYs + 3); // read from edge capture register
-            if((edge_cap & 0x1) == 0x1) { // KEY0 pressed
-                *(KEYs + 3) = 0x1; // clear edge register
-                break; // will restart game
-            }
+			int PS2_data, RVALID;
+
+			PS2_data = *(PS2_ptr); // read the Data register in the PS/2 port
+			RVALID = PS2_data & 0x8000; // extract the RVALID field
+			if (RVALID) {
+				/* shift the next data byte into the display */
+				byte1 = byte2;
+				byte2 = byte3;
+				byte3 = PS2_data & 0xFF;
+
+				volatile unsigned int twoParts;
+
+				twoParts = (byte2 << 8) | byte3;
+
+				//Check for key r
+				//makecode = 0xe074, breakcode = 0xe0f074
+				if((byte1 == (char)0x2D) && (byte2 == (char)0xF0) && (byte3 == (char)0x2D)){
+					break;
+				}
+			}
         }
         
         /*while(!startOver || !terminate);
