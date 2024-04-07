@@ -445,6 +445,10 @@ int main(void)
 
             // display score on HEX
             display_hex(point_counter);
+            set_point(1, point_counter % 10);
+            set_point(10, (point_counter / 10) % 10);
+            set_point(100, (point_counter / 100) % 10);
+            set_point(1000, (point_counter / 1000) % 10);
 
             // swap the frame buffer
 			wait_for_vsync(); 
