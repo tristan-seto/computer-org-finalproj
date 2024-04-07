@@ -34,6 +34,7 @@ volatile unsigned int* const pixel_ctrl_ptr = ((volatile unsigned int*)0xFF20302
 #define TIMER_ONE_X 260
 #define TIMER_TWO_X 280
 #define TIMER_THREE_X 293
+#define TIMER_Y 293
 
 // Global Variables here
 volatile int pixel_buffer_start; // global variable location of frame buffer
