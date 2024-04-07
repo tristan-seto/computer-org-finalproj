@@ -549,6 +549,20 @@ void draw_chef (int x, int y) {
     }
 }
 
+void set_time(int place, int number){
+	int x_loc;
+	int y_loc = TIMER_Y;
+	if(place == 1){
+		x_loc = TIMER_ONE_X;
+	}
+	if(place == 2){
+		x_loc = TIMER_TWO_X;
+	}
+	if(place == 1){
+		x_loc = TIMER_THREE_X;
+	}
+}
+
 void clear_chef (int x, int y) {
     int a, b;
     for (a = 0; a < 65; a++) {
