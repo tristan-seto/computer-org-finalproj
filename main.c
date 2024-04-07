@@ -168,7 +168,12 @@ void draw_vegi_bacon_pizza(int x, int y); // draws vegetable and bacon pizza to 
 void draw_pep_bacon_pizza(int x, int y); // draws pepperoni and bacon pizza to be made on the top at a certain position
 void draw_all_pizza(int x, int y); // draws everything pizza to be made on the top at a certain position
 
-void set_time(int place, int number);
+// Timer Functions
+void initialize_timer(int frequency);
+int get_time();
+
+// Numbers on the screen
+void set_time(int, int);
 void draw_time0(int x, int y);
 void draw_time1(int x, int y);
 void draw_time2(int x, int y);
@@ -179,10 +184,6 @@ void draw_time6(int x, int y);
 void draw_time7(int x, int y);
 void draw_time8(int x, int y);
 void draw_time9(int x, int y);
-
-// Timer Functions
-void initialize_timer(int frequency);
-int get_time();
 
 // HEX Decoder
 void display_hex(int num);
@@ -266,15 +267,19 @@ int main(void)
             draw_pizza(orders[i].type, pizza_coordinates[i].x, pizza_coordinates[i].y);
         }
 
+        // initialize the timer
+        initialize_timer(CLOCK_FRQ);
+        int time_left = get_time();
+        *LEDs = time_left;
+        display_hex(time_left);
+        set_time(1, time_left / 60);
+        set_time(2, (time_left % 60) / 10);
+        set_time(3, time_left % 10);
+
         // switch the frame buffer
         wait_for_vsync(); 
         pixel_buffer_start = *(pixel_ctrl_ptr + 1); 
 
-        // initialize the timer
-        initialize_timer(CLOCK_FRQ);
-        *LEDs = get_time();
-        display_hex(get_time());
-        
         while(get_time() != 0) {
             //if(/* key pressed */) {   // check for a key press
                 // which key was pressed?
@@ -390,8 +395,13 @@ int main(void)
             }
 
             // display time
-            *LEDs = get_time();
-            display_hex(get_time());
+
+            time_left = get_time();
+            *LEDs = time_left;
+            display_hex(time_left);
+            set_time(1, time_left / 60);
+            set_time(2, (time_left % 60) / 10);
+            set_time(3, time_left % 10);
 
             // swap the frame buffer
 			wait_for_vsync(); 
