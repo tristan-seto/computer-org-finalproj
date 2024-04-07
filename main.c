@@ -233,6 +233,7 @@ void draw_point8(int x, int y);
 void draw_point9(int x, int y);
 
 //countdown at begining of the game
+void draw_count(int num);
 void draw_count_three();
 void draw_count_two();
 void draw_count_one();
@@ -336,7 +337,7 @@ int main(void)
                     }
                 }
             }
-            set_time(3, time_left);
+            draw_count(time_left);
 
             // swap the frame buffer
 			wait_for_vsync(); 
@@ -1243,6 +1244,18 @@ void draw_one_star() {
     }
 }
 
+void draw_count(int num){
+    switch(num){
+        case 1: draw_count_one();
+        break;
+        case 2: draw_count_two();
+        break;
+        case 3: draw_count_three();
+        break;
+        default: return;
+    }
+}
+
 void draw_count_three(){
 	int a, b;
     for (a = 0; a < 30; a++) {
@@ -1268,7 +1281,7 @@ void draw_count_one(){
     for (a = 0; a < 30; a++) {
         for (b = 0; b < 51; b++) {
             if (count1[b][a] != 12777)
-            plot_pixel 135+a, 85+b, count1[b][a]);
+            plot_pixel (135+a, 85+b, count1[b][a]);
         }
     }
 }
