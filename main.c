@@ -58,6 +58,12 @@ struct timer_device * const timer = ((struct timer_device *) 0xFF202000);
 #define TIMER_THREE_X 293
 #define TIMER_Y 15
 
+#define POINT_ONE_X 137
+#define POINT_TEN_X 128
+#define POINT_HUNDRED_X 119
+#define POINT_THOUSAND_X 110
+#define POINT_Y	48
+
 // HEX DECODER
 #define HEX_0 0x3F
 #define HEX_1 0x06
@@ -117,6 +123,17 @@ const unsigned short int bacon_pizza[35][35]; // array for bacon pizza on top (p
 const unsigned short int vegi_bacon_pizza[35][35]; // array for vegetable and bacon pizza on top (pizza to be made)
 const unsigned short int pep_bacon_pizza[35][35]; // array for pepperonin and bacon pizza on top (pizza to be made)
 const unsigned short int all_pizza[35][35]; // array for everything pizza on top (pizza to be made)
+
+const unsigned short int point0[10][7];
+const unsigned short int point1[10][7];
+const unsigned short int point2[10][7];
+const unsigned short int point3[10][7];
+const unsigned short int point4[10][7];
+const unsigned short int point5[10][7];
+const unsigned short int point6[10][7];
+const unsigned short int point7[10][7];
+const unsigned short int point8[10][7];
+const unsigned short int point9[10][7];
 
 const unsigned short int timer0[16][10];
 const unsigned short int timer1[16][10];
@@ -179,6 +196,18 @@ void draw_time6(int x, int y);
 void draw_time7(int x, int y);
 void draw_time8(int x, int y);
 void draw_time9(int x, int y);
+
+void set_point(int place, int number);
+void draw_point0(int x, int y);
+void draw_point1(int x, int y);
+void draw_point2(int x, int y);
+void draw_point3(int x, int y);
+void draw_point4(int x, int y);
+void draw_point5(int x, int y);
+void draw_point6(int x, int y);
+void draw_point7(int x, int y);
+void draw_point8(int x, int y);
+void draw_point9(int x, int y);
 
 // Timer Functions
 void initialize_timer(int frequency);
@@ -667,6 +696,53 @@ void set_time(int place, int number){
 	}
 }
 
+void set_point(int place, int number){
+	int x_loc;
+	int y_loc = POINT_Y;
+	if(place == 1){
+		x_loc = POINT_ONE_X;
+	}
+	if(place == 10){
+		x_loc = POINT_TEN_X;
+	}
+	if(place == 100){
+		x_loc = POINT_HUNDRED_X;
+	}
+	if(place == 1000){
+		x_loc = POINT_THOUSAND_X;
+	}
+	if (number == 0){
+		draw_point0(x_loc, y_loc);
+	}
+	if (number == 1){
+		draw_point1(x_loc, y_loc);
+	}
+	if (number == 2){
+		draw_point2(x_loc, y_loc);
+	}
+	if (number == 3){
+		draw_point3(x_loc, y_loc);
+	}
+	if (number == 4){
+		draw_point4(x_loc, y_loc);
+	}
+	if (number == 5){
+		draw_point5(x_loc, y_loc);
+	}
+	if (number == 6){
+		draw_point6(x_loc, y_loc);
+	}
+	if (number == 7){
+		draw_point7(x_loc, y_loc);
+	}
+	if (number == 8){
+		draw_point8(x_loc, y_loc);
+	}
+	if (number == 9){
+		draw_point9(x_loc, y_loc);
+	}
+}
+
 void clear_chef (int x, int y) {
     int a, b;
     for (a = 0; a < 65; a++) {
@@ -872,6 +948,106 @@ void clear_chef_with_bacon (int x, int y) {
     }
 }
 
+void draw_point0(int x, int y) {
+    int a, b;
+    for (a = 0; a < 7; a++) {
+        for (b = 0; b < 10; b++) {
+            if (point0[b][a] != 48753)
+            plot_pixel (x+a, y+b, point0[b][a]);
+        }
+    }
+}
+
+void draw_point1(int x, int y) {
+    int a, b;
+    for (a = 0; a < 7; a++) {
+        for (b = 0; b < 10; b++) {
+            if (point1[b][a] != 48753)
+            plot_pixel (x+a, y+b, point1[b][a]);
+        }
+    }
+}
+
+void draw_point2(int x, int y) {
+    int a, b;
+    for (a = 0; a < 7; a++) {
+        for (b = 0; b < 10; b++) {
+            if (point2[b][a] != 48753)
+            plot_pixel (x+a, y+b, point2[b][a]);
+        }
+    }
+}
+
+void draw_point3(int x, int y) {
+    int a, b;
+    for (a = 0; a < 7; a++) {
+        for (b = 0; b < 10; b++) {
+            if (point3[b][a] != 48753)
+            plot_pixel (x+a, y+b, point3[b][a]);
+        }
+    }
+}
+
+void draw_point4(int x, int y) {
+    int a, b;
+    for (a = 0; a < 7; a++) {
+        for (b = 0; b < 10; b++) {
+            if (point4[b][a] != 48753)
+            plot_pixel (x+a, y+b, point4[b][a]);
+        }
+    }
+}
+
+void draw_point5(int x, int y) {
+    int a, b;
+    for (a = 0; a < 7; a++) {
+        for (b = 0; b < 10; b++) {
+            if (point5[b][a] != 48753)
+            plot_pixel (x+a, y+b, point5[b][a]);
+        }
+    }
+}
+
+void draw_point6(int x, int y) {
+    int a, b;
+    for (a = 0; a < 7; a++) {
+        for (b = 0; b < 10; b++) {
+            if (point6[b][a] != 48753)
+            plot_pixel (x+a, y+b, point6[b][a]);
+        }
+    }
+}
+
+void draw_point7(int x, int y) {
+    int a, b;
+    for (a = 0; a < 7; a++) {
+        for (b = 0; b < 10; b++) {
+            if (point7[b][a] != 48753)
+            plot_pixel (x+a, y+b, point7[b][a]);
+        }
+    }
+}
+
+void draw_point8(int x, int y) {
+    int a, b;
+    for (a = 0; a < 7; a++) {
+        for (b = 0; b < 10; b++) {
+            if (point8[b][a] != 48753)
+            plot_pixel (x+a, y+b, point8[b][a]);
+        }
+    }
+}
+
+void draw_point9(int x, int y) {
+    int a, b;
+    for (a = 0; a < 7; a++) {
+        for (b = 0; b < 10; b++) {
+            if (point9[b][a] != 48753)
+            plot_pixel (x+a, y+b, point9[b][a]);
+        }
+    }
+}
+
 void draw_time0(int x, int y) {
     int a, b;
     for (a = 0; a < 10; a++) {
@@ -971,6 +1147,146 @@ void draw_time9(int x, int y) {
         }
     }
 }
+
+const unsigned short int point0[10][7] = {
+	{48753,44527,16966,6338,12773,40302,48753},
+	{48753,8515,4225,21224,8451,4225,46640},
+	{36077,0,31851,48753,40334,0,27594},
+	{27561,0,44560,48753,48753,6338,19078},
+	{23304,0,48753,48753,48753,8483,14821},
+	{25481,0,46672,48753,48753,6370,16998},
+	{33899,0,36109,48753,44560,32,25416},
+	{46672,4257,10595,33932,14885,0,42415},
+	{48753,38157,4258,0,2145,31819,48753},
+	{48753,48753,48753,42415,46704,48753,48753},
+
+};
+
+const unsigned short int point1[10][7] = {
+	{48753,33964,21191,12708,27594,48753,48753},
+	{48753,19111,12741,32,21191,48753,48753},
+	{48753,48753,48753,2145,21191,48753,48753},
+	{48753,48753,48753,2145,21191,48753,48753},
+	{48753,48753,48753,2145,21191,48753,48753},
+	{48753,48753,48753,2145,21191,48753,48753},
+	{48753,48753,48753,2145,21191,48753,48753},
+	{48753,38189,36077,2113,16933,36077,42415},
+	{48753,6370,0,0,0,0,25416},
+	{48753,48753,48753,48753,48753,48753,48753},
+
+};
+
+const unsigned short int point2[10][7] = {
+	{48753,38189,12708,4258,10628,36044,48753},
+	{44559,4225,6370,23304,8451,2112,42415},
+	{33932,0,36077,48753,38189,0,29706},
+	{42415,31851,46640,48753,36044,0,36044},
+	{48753,48753,48753,42447,6370,8451,46672},
+	{48753,48753,42415,6370,4258,42382,48753},
+	{48753,40302,6338,8451,42415,48753,48753},
+	{40334,4225,2113,27529,29706,29706,36109},
+	{31787,0,0,0,0,0,19111},
+	{48753,48753,48753,48753,48753,48753,48753},
+
+};
+
+const unsigned short int point3[10][7] = {
+	{48753,42382,14853,6338,16966,33964,48753},
+	{46672,6370,6338,23336,12708,0,38157},
+	{40334,10596,36044,48753,44560,0,25481},
+	{48753,48753,46672,40334,23368,0,36109},
+	{48753,48753,36044,0,0,21191,48753},
+	{48753,48753,46640,40270,23336,0,31851},
+	{36109,19079,44527,48753,46704,2113,21191},
+	{40302,0,14885,36077,21224,0,31787},
+	{48753,29674,2113,0,0,21223,48753},
+	{48753,48753,46672,42382,46640,48753,48753},
+
+};
+
+const unsigned short int point4[10][7] = {
+	{48753,48753,48753,46640,14821,19078,48753},
+	{48753,48753,48753,19078,0,8483,48753},
+	{48753,48753,31851,0,8515,8483,48753},
+	{48753,42447,4225,23304,21191,8483,48753},
+	{48753,12740,8515,46672,21191,8483,48753},
+	{27561,0,29706,38157,16934,6370,40302},
+	{10628,0,0,0,0,0,10660},
+	{44560,44527,44527,44527,19078,8451,44560},
+	{48753,48753,48753,48753,21191,8483,48753},
+	{48753,48753,48753,48753,48753,48753,48753},
+
+};
+
+const unsigned short int point5[10][7] = {
+	{48753,27626,10660,10660,10660,10660,40302},
+	{48753,16934,6370,16998,16998,16998,42382},
+	{48753,8515,23304,48753,48753,48753,48753},
+	{48753,2145,14853,12740,14853,33964,48753},
+	{44527,0,6338,21191,8451,0,42382},
+	{44560,31851,44527,48753,44527,32,25481},
+	{42382,27594,44527,48753,46672,2113,19111},
+	{46640,2145,14821,33964,19078,0,33932},
+	{48753,31819,8483,0,32,23368,48753},
+	{48753,48753,48753,42447,46672,48753,48753},
+
+};
+
+const unsigned short int point6[10][7] = {
+	{48753,48753,48753,23336,12741,42447,48753},
+	{48753,48753,29739,32,33964,48753,48753},
+	{48753,40270,2113,25416,48753,48753,48753},
+	{48753,10660,2145,19111,19078,36077,48753},
+	{40302,0,2145,19078,8451,0,40334},
+	{31787,0,31819,48753,46640,2113,23336},
+	{31787,0,38157,48753,48753,4258,14853},
+	{42447,2113,12708,36077,23304,0,29674},
+	{48753,33932,4225,0,0,21191,48753},
+	{48753,48753,48753,42414,46672,48753,48753},
+
+};
+
+const unsigned short int point7[10][7] = {
+	{29739,10660,10660,10660,10660,10660,16998},
+	{25449,0,19111,19111,19079,0,10628},
+	{31787,14821,48753,48753,31787,0,36109},
+	{48753,48753,48753,46704,6370,19079,48753},
+	{48753,48753,48753,27626,0,42382,48753},
+	{48753,48753,48753,10628,10628,48753,48753},
+	{48753,48753,46640,32,23304,48753,48753},
+	{48753,48753,36044,0,33964,48753,48753},
+	{48753,48753,23336,0,44560,48753,48753},
+	{48753,48753,48753,48753,48753,48753,48753},
+
+};
+
+const unsigned short int point8[10][7] = {
+	{48753,40270,12740,4258,10596,36012,48753},
+	{48753,10628,8483,27529,12708,4225,46672},
+	{42415,0,33932,48753,42415,0,33932},
+	{46704,4257,14821,36109,21191,32,42382},
+	{48753,27594,0,0,0,21191,48753},
+	{42415,2113,14821,33964,19111,0,36077},
+	{31787,0,38189,48753,46672,32,23336},
+	{38157,0,16966,38189,23304,0,29706},
+	{48753,27561,8451,0,6338,21224,46704},
+	{48753,48753,48753,42447,48753,48753,48753},
+
+};
+
+const unsigned short int point9[10][7] = {
+	{48753,38189,12740,4258,12708,36109,48753},
+	{42414,2113,8483,25449,8483,2112,42382},
+	{25449,0,40302,48753,42415,0,23368},
+	{27594,0,42447,48753,44527,0,21191},
+	{44527,32,12740,31819,14821,0,27594},
+	{48753,31787,8451,6338,4258,2112,44527},
+	{48753,48753,48753,40270,2080,25416,48753},
+	{48753,48753,44560,8483,12741,48753,48753},
+	{48753,46640,10628,6338,44559,48753,48753},
+	{48753,48753,48753,48753,48753,48753,48753},
+
+};
 
 const unsigned short int timer0[16][10] = {
 	{42097,42097,46420,54840,59163,59131,54872,44275,42097,42097},
