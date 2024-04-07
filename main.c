@@ -25,16 +25,6 @@ volatile unsigned int * const PS2_ptr = ((volatile unsigned int*)0xff200100);
 
 volatile unsigned int * const pixel_ctrl_ptr = ((volatile unsigned int*)0xFF203020);
 
-/*
-struct hex_display {
-    // access for HEX[3:0]
-    volatile unsigned char hex[4];
-};
-
-struct hex_display * const HEXs = ((struct hex_display *) 0xFF200020);
-*/
-
-// hex display struct was proving difficult for CPULator, model HEX[3:0] as unsigned int for now
 volatile unsigned int * const HEXs = ((volatile unsigned int *) 0xFF200020);
 
 struct timer_device {
@@ -47,6 +37,19 @@ struct timer_device {
 };
 
 struct timer_device * const timer = ((struct timer_device *) 0xFF202000);
+
+// the audio device
+struct audio_t { 
+      volatile unsigned int control;
+      volatile unsigned char rarc;
+      volatile unsigned char ralc;
+      volatile unsigned char wsrc;
+      volatile unsigned char wslc;
+      volatile unsigned int ldata;
+      volatile unsigned int rdata;
+};
+
+struct audio_t * const audio_p = ((struct audio_t *) 0xFF203040);
 
 #endif /* DEVICES_H */
 
