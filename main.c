@@ -170,8 +170,6 @@ int main(void)
         bool has_bacon = false;
 
         // initialize game
-        *LEDs = point_counter;
-        //struct pizza current_pizza; // pizza should be initialized within the game: will keep getting reset
         chef_coordinates.x = 120; // set initial coordinates of chef
         chef_coordinates.y = 72;
 
@@ -194,9 +192,11 @@ int main(void)
         }
 
         // switch the frame buffer
-        /* TO BE IMPLEMENTED */
+        wait_for_vsync(); 
+        pixel_buffer_start = *(pixel_ctrl_ptr + 1); 
 
         // initialize the timer
+        *LEDs = get_time();
         timer_start(); // have not figured out how to do timers yet so :D
 
         while(get_time() != 0) {
@@ -252,10 +252,12 @@ int main(void)
                     // do we want to check if the chef is in front of the item or not?
                     current_order.complete = true;
                     orders[0].complete = true;
+                    completed_orders++;
 
                     // check the status against the first order in the list to allocate points
                     // score breakdown (toppings correct): 2 / 4 / 5 
                     if(orders[0].type == current_order.type) point_counter += 5; // complete correct order
+                    else if(current_order.type == 0) completed_orders--; // user didn't do anything, skip.
                     else { // part points for getting one ingredient right
                         if(orders[0].veg == current_order.veg) point_counter += 2; 
                         if(orders[0].pepperoni == current_order.pepperoni) point_counter += 2;
@@ -297,8 +299,7 @@ int main(void)
             for(int i = 0; i < 4; i++) {
                 draw_pizza(orders[i].type, pizza_coordinates[i].x, pizza_coordinates[i].y);
             }
-            
-            *LEDs = point_counter;
+            *LEDs = get_time();
 
             // swap the frame buffer
 			wait_for_vsync(); 
@@ -359,12 +360,12 @@ void initialize_pizza(struct pizza * pizza, int type) {
 }
 
 void timer_start() {
-    timer = 10000;
+    timer = CLOCK_FRQ * 100;
 }
 
 int get_time() {
-    //timer--; // for now call get_time() to decrement timer 
-    return timer;
+    timer--; // for now call get_time() to decrement timer 
+    return timer / CLOCK_FRQ;
 }
 
 
