@@ -56,7 +56,7 @@ struct timer_device * const timer = ((struct timer_device *) 0xFF202000);
 #define TIMER_ONE_X 260
 #define TIMER_TWO_X 280
 #define TIMER_THREE_X 293
-#define TIMER_Y 293
+#define TIMER_Y 15
 
 // HEX DECODER
 #define HEX_0 0x3F
@@ -592,6 +592,36 @@ void set_time(int place, int number){
 	}
 	if(place == 1){
 		x_loc = TIMER_THREE_X;
+	}
+	if (number == 0){
+		draw_time0(x_loc, y_loc);
+	}
+	if (number == 1){
+		draw_time1(x_loc, y_loc);
+	}
+	if (number == 2){
+		draw_time2(x_loc, y_loc);
+	}
+	if (number == 3){
+		draw_time3(x_loc, y_loc);
+	}
+	if (number == 4){
+		draw_time4(x_loc, y_loc);
+	}
+	if (number == 5){
+		draw_time5(x_loc, y_loc);
+	}
+	if (number == 6){
+		draw_time6(x_loc, y_loc);
+	}
+	if (number == 7){
+		draw_time7(x_loc, y_loc);
+	}
+	if (number == 8){
+		draw_time8(x_loc, y_loc);
+	}
+	if (number == 9){
+		draw_time9(x_loc, y_loc);
 	}
 }
 
