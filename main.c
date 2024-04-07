@@ -21,16 +21,21 @@ volatile unsigned int * const LEDs = ((volatile unsigned int *) 0xFF200000);
 
 volatile unsigned int * const KEYs = ((volatile unsigned int *) 0xFF200050);
 
-volatile unsigned int* const PS2_ptr = ((volatile unsigned int*)0xff200100);
+volatile unsigned int * const PS2_ptr = ((volatile unsigned int*)0xff200100);
 
-volatile unsigned int* const pixel_ctrl_ptr = ((volatile unsigned int*)0xFF203020);
+volatile unsigned int * const pixel_ctrl_ptr = ((volatile unsigned int*)0xFF203020);
 
+/*
 struct hex_display {
     // access for HEX[3:0]
     volatile unsigned char hex[4];
 };
 
 struct hex_display * const HEXs = ((struct hex_display *) 0xFF200020);
+*/
+
+// hex display struct was proving difficult for CPULator, model HEX[3:0] as unsigned int for now
+volatile unsigned int * const HEXs = ((volatile unsigned int *) 0xFF200020);
 
 struct timer_device {
     volatile unsigned int status;
@@ -176,6 +181,9 @@ void draw_time9(int x, int y);
 void initialize_timer(int frequency);
 int get_time();
 
+// HEX Decoder
+void display_hex(int num);
+int hex_decode(int num);
 
 // Main Function
 
@@ -449,6 +457,8 @@ int get_time() {
     return time;
 }
 
+/*
+// Implementation with Struct HEX *
 void display_hex(int num){
     HEXs->hex[0] = hex_decode(num % 10);
     
@@ -482,6 +492,28 @@ void display_hex(int num){
         HEXs->hex[3] = hex_decode(num % 10);
     }
     
+}*/
+
+// Implementation with HEX[3:0] as just unsigned int
+void display_hex(int num){
+    int digit_0 = 0;
+    int digit_1 = 0;
+    int digit_2 = 0;
+    int digit_3 = 0;
+
+    digit_0 = hex_decode(num % 10);
+
+    // iteration 1
+    num = num / 10;
+    if(num != 0) digit_1 = hex_decode(num % 10);
+
+    num = num / 10;
+    if(num != 0) digit_2 = hex_decode(num % 10);
+
+    num = num / 10;
+    if(num != 0) digit_3 = hex_decode(num % 10);
+
+    *HEXs = (digit_0 | (digit_1 << 8) | (digit_2 << 16) | (digit_3 << 24));
 }
 
 int hex_decode(int num){
