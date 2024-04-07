@@ -21,6 +21,11 @@ volatile unsigned int * const LEDs = ((volatile unsigned int *) 0xFF200000);
 
 volatile unsigned int * const KEYs = ((volatile unsigned int *) 0xFF200050);
 
+volatile unsigned int* const PS2_ptr = ((volatile unsigned int*)0xff200100);
+
+volatile unsigned int* const pixel_ctrl_ptr = ((volatile unsigned int*)0xFF203020);
+
+
 #endif /* DEVICES_H */
 
 #define X_MAX 320
@@ -28,10 +33,9 @@ volatile unsigned int * const KEYs = ((volatile unsigned int *) 0xFF200050);
 #define CLOCK_FRQ 100000000
 
 // Global Variables here
-int pixel_buffer_start; // global variable location of frame buffer
+volatile int pixel_buffer_start; // global variable location of frame buffer
 int timer; // time remaining
 
-volatile int pixel_buffer_start; 
 
 //double buffering
 short int Buffer1[240][512];
@@ -123,7 +127,7 @@ int get_time();
 
 int main(void)
 {
-	volatile int * pixel_ctrl_ptr = (int *)0xFF203020; // pointer to the base
+	
 
 	// Set up the first buffer
     *(pixel_ctrl_ptr + 1) = (int)Buffer1;
@@ -275,10 +279,7 @@ int main(void)
             // update timer
             // redraw everything (including time, chef position, status of dishes)
             // draw the background & ingredients
-			clear_chef();
-			clear_chef_with_bacon();
-			clear_chef_with_pepperoni();
-			clear_chef_with_tomato();
+
             draw_background ();
 
             // draw the chef
@@ -369,9 +370,7 @@ int get_time() {
 
 void plot_pixel(int x, int y, short int line_color)
 {
-	volatile short int *one_pixel_address;
-	one_pixel_address = pixel_buffer_start + (y << 10) + (x << 1);
-	*one_pixel_address = line_color;
+	*(short int *)(pixel_buffer_start + (y<<10) + (x<<1)) = line_color;
 }
 
 void draw_start () {
