@@ -271,10 +271,12 @@ int main(void)
         initialize_timer(CLOCK_FRQ);
         int time_left = get_time();
         *LEDs = time_left;
-        display_hex(time_left);
         set_time(1, time_left / 60);
         set_time(2, (time_left % 60) / 10);
         set_time(3, time_left % 10);
+
+        // initialize point counter
+        display_hex(point_counter);
 
         // switch the frame buffer
         wait_for_vsync(); 
@@ -395,13 +397,14 @@ int main(void)
             }
 
             // display time
-
             time_left = get_time();
             *LEDs = time_left;
-            display_hex(time_left);
             set_time(1, time_left / 60);
             set_time(2, (time_left % 60) / 10);
             set_time(3, time_left % 10);
+
+            // display score on HEX
+            display_hex(point_counter);
 
             // swap the frame buffer
 			wait_for_vsync(); 
@@ -642,7 +645,7 @@ void set_time(int place, int number){
 	if(place == 2){
 		x_loc = TIMER_TWO_X;
 	}
-	if(place == 1){
+	if(place == 3){
 		x_loc = TIMER_THREE_X;
 	}
 	if (number == 0){
