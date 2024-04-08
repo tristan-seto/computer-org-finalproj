@@ -444,7 +444,10 @@ int main(void)
 
                     // check the status against the first order in the list to allocate points
                     // score breakdown (toppings correct): 2 / 4 / 5 
-                    if(orders[0].type == current_order.type) point_counter += 5; // complete correct order
+                    if(orders[0].type == current_order.type){
+                        point_counter += 5; // complete correct order
+                        time += 10; // add 10 more seconds to the timer
+                    } 
                     else if(current_order.type == 0) completed_orders--; // user didn't do anything, skip.
                     else { // part points for getting one ingredient right
                         if(orders[0].veg == current_order.veg) point_counter += 2; 
