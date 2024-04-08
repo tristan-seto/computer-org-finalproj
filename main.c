@@ -206,6 +206,8 @@ void draw_all_pizza(int x, int y); // draws everything pizza to be made on the t
 void initialize_timer(int frequency, int t);
 int get_time();
 
+void play_sound(int frequency, int length);
+
 // Numbers on the screen
 void set_time(int, int);
 void draw_time0(int x, int y);
@@ -351,16 +353,11 @@ int main(void)
             // play countdown sound if the number changes
             if(time_left != get_time()){
                 time_left = get_time();
-                int sample_period = (time_left == 0) ? SAMPLE_RATE / 2000 : SAMPLE_RATE / 1000;
-                for (int i = 0; i < 50 * sample_period; i++) {
-                    if ((audio_p->wsrc != 0) && (audio_p->wslc != 0)) {
-                    // output HIGH for first half of period and low for second half of period
-                        audio_p->ldata = ((i % sample_period) < sample_period / 2) ? 0x0FFFFFFF : 0;
-                        audio_p->rdata = ((i % sample_period) < sample_period / 2) ? 0x0FFFFFFF : 0;
-                    }
-                }
+                int frequency = (time_left == 0) ? 2000 : 1000;
+                play_sound(frequency, 50);
             }
-            draw_count(time_left);
+            int time_left_disp = (time_left > 3) ? 3 : time_left;
+            draw_count(time_left_disp);
 
             // swap the frame buffer
 			wait_for_vsync(); 
@@ -447,12 +444,24 @@ int main(void)
                     if(orders[0].type == current_order.type){
                         point_counter += 5; // complete correct order
                         time += 10; // add 10 more seconds to the timer
+                        
+                        // play a sound to indicate correct order was sent
+                        play_sound(1000, 30);
+                        play_sound(1600, 30);
                     } 
-                    else if(current_order.type == 0) completed_orders--; // user didn't do anything, skip.
-                    else { // part points for getting one ingredient right
+                    else if(current_order.type == 0){
+                        completed_orders--; // user didn't do anything, skip.
+
+                        // play sound to indicate an order was trashed
+                        play_sound(500, 50);
+                    } else { // part points for getting one ingredient right
                         if(orders[0].veg == current_order.veg) point_counter += 2; 
                         if(orders[0].pepperoni == current_order.pepperoni) point_counter += 2;
                         if(orders[0].bacon == current_order.bacon) point_counter += 2;
+
+                        // play a sound to indicate a half-correct order was sent
+                        play_sound(1000, 30);
+                        play_sound(800, 30);
                     }
 
                     // clear the current order and move the next orders:
@@ -608,6 +617,17 @@ int get_time() {
 
     if(time == 0) timer->control = 0x8; // stop timer if out of time
     return time;
+}
+
+void play_sound(int frequency, int length){
+    int sample_period = SAMPLE_RATE / frequency;
+    for (int i = 0; i < length * sample_period; i++) {
+        if ((audio_p->wsrc != 0) && (audio_p->wslc != 0)) {
+        // output HIGH for first half of period and low for second half of period
+            audio_p->ldata = ((i % sample_period) < sample_period / 2) ? 0x0FFFFFFF : 0;
+            audio_p->rdata = ((i % sample_period) < sample_period / 2) ? 0x0FFFFFFF : 0;
+        }
+    }
 }
 
 void display_hex(int num){
