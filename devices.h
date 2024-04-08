@@ -8,6 +8,9 @@
 
 */
 
+/*
+** THIS FILE WILL NO LONGER BE USED
+
 #ifndef DEVICES_H
 #define DEVICES_H
 // global variables
@@ -67,3 +70,4 @@ struct videoout_t {
 };
 
 #endif /* DEVICES_H */
+*/
