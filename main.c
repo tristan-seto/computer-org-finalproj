@@ -523,11 +523,11 @@ int main(void)
         // after loop: game over
         // freeze current game state and write GAME OVER, display current score & start over & terminate button
         draw_end();
-		if ((point_counter >= 5) && (point_counter < 10)){
+		if ((point_counter >= 10) && (point_counter < 20)){
 			draw_one_star();
-		}else if ((point_counter >= 10) && (point_counter < 20)){
+		}else if ((point_counter >= 20) && (point_counter < 30)){
 			draw_two_star();
-		}else if (point_counter >= 20){
+		}else if (point_counter >= 30){
 			draw_three_star();
 		}
 
