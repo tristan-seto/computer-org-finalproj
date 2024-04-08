@@ -317,6 +317,29 @@ int main(void)
             // display 3, 2, 1 on screen
             draw_background ();
 
+			int PS2_data, RVALID;
+			PS2_data = *(PS2_ptr); // read the Data register in the PS/2 port
+			RVALID = PS2_data & 0x8000; // extract the RVALID field
+			
+			if (RVALID){
+				byte1 = byte2;
+				byte2 = byte3;
+				byte3 = PS2_data & 0xFF;
+
+				while ((byte1 == (char)0xE0) && (byte2 == (char)0xF0) && (byte3 == (char)0x74)) {
+					break;
+				}
+				while ((byte1 == (char)0xE0) && (byte2 == (char)0xF0) && (byte3 == (char)0x6B)) {
+					break;
+				}
+				while ((byte1 == (char)0x29) && (byte2 == (char)0xF0) && (byte3 == (char)0x29)) {
+					break;
+				}
+				while ((byte1 == (char)0x5A) && (byte2 == (char)0xF0) && (byte3 == (char)0x5A)) {
+					break;
+				}
+			}
+
             // draw the chef
             draw_chef(chef_coordinates.x, chef_coordinates.y);
 
@@ -361,7 +384,6 @@ int main(void)
 
         while(get_time() != 0) {
             
-            // game logic modelled with buttons
             int PS2_data, RVALID;
 
 			PS2_data = *(PS2_ptr); // read the Data register in the PS/2 port
