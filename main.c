@@ -1,21 +1,27 @@
 /*
-// ECE243 2024 S FINAL PROJECT
-// MAIN.C
+// Author: Tristan Seto & Christina Zhang
+// Project: ECE243 2024 S FINAL PROJECT
+// Name: "The Legendary Pizzasmith"
+// File: MAIN.C
 
-// Author: Tristan Seto & Christinan Zhang
-// Date: 2024-04-04
+// Date: 2024-04-08
 // This file will contain the majority of code used for the ECE 243 Final Project.
+
+“The Legendary Pizzasmith” is a pizza making game created using coding language C.
+The program is designed to work with a Nios II De1-Soc board. The game requires a
+VGA screen to display its graphical features, and a PS2 keyboard for input data. 
+
+Description:
+The player has 2 minutes to make as many of the pizza orders displayed to them on screen.
+Player can move the chef left/right, pick up/drop ingredients and submit pizzas using PS2-Keyboard commands.
+Perfect pizzas will receive 5 coins and a 10 second bonus on time. Semi-perfect pizzas will receive partial points.
+The De1-SoC board will display the points on the HEX Display, while LEDs will count down the time (in binary).
+The player can play the game as many time as they would like.
 
 */
 
 #include <stdbool.h>
 #include <stdlib.h>
-//#include "devices.h"
-
-// for testing purposes reduce reliance on devices.h
-// CPULator does not allow includes
-#ifndef DEVICES_H
-#define DEVICES_H
 
 volatile unsigned int * const LEDs = ((volatile unsigned int *) 0xFF200000);
 
@@ -51,17 +57,17 @@ struct audio_t {
 
 struct audio_t * const audio_p = ((struct audio_t *) 0xFF203040);
 
-#endif /* DEVICES_H */
-
-#define X_MAX 320
-#define Y_MAX 240
+// FOR TIMER & AUDIO DEVICES
 #define CLOCK_FRQ 100000000
 #define SAMPLE_RATE 8000
+
+// VGA COORDINATES
+#define X_MAX 320
+#define Y_MAX 240
 #define TIMER_ONE_X 260
 #define TIMER_TWO_X 280
 #define TIMER_THREE_X 293
 #define TIMER_Y 15
-
 #define POINT_ONE_X 137
 #define POINT_TEN_X 128
 #define POINT_HUNDRED_X 119
@@ -81,13 +87,9 @@ struct audio_t * const audio_p = ((struct audio_t *) 0xFF203040);
 #define HEX_9 0x6F
 
 // Global Variables here
-volatile int pixel_buffer_start; // global variable location of frame buffer
 int time; // time remaining
 
-//double buffering
-short int Buffer1[240][512];
-short int Buffer2[240][512];
-
+// sets of coordinates
 struct coordinates {
     int x;
     int y;   
@@ -96,6 +98,7 @@ struct coordinates {
 struct coordinates pizza_coordinates[4];
 struct coordinates chef_coordinates;
 
+// pizza status
 struct pizza {
     bool complete;
     bool veg;
@@ -104,6 +107,12 @@ struct pizza {
     int type; // combination of the three bool variables to use for status
 };
 
+//double buffering
+volatile int pixel_buffer_start; // global variable location of frame buffer
+short int Buffer1[240][512];
+short int Buffer2[240][512];
+
+// VGA displays
 const unsigned short int start_page[240][320]; //array for start page
 const unsigned short int background[240][320]; //array for background
 const unsigned short int end[240][320]; //array for end page
@@ -112,8 +121,6 @@ const unsigned short int chef[89][65]; //array for chef
 const unsigned short int chef_with_tomato[89][83]; //array for chef holding vegetables
 const unsigned short int chef_with_pepperoni[89][83]; //array for chef holding pepperoni
 const unsigned short int chef_with_bacon[89][83]; //array for chef holding bacon
-
-//unsigned short int * chef_types[4] = {chef, chef_with_tomato, chef_with_pepperoni, chef_with_bacon};
 
 const unsigned short int vegi_on_pizza[50][81]; //array for vegetable on pizza
 const unsigned short int pepperoni_on_pizza[50][81]; //array for pepperoni on pizza
@@ -246,8 +253,7 @@ int hex_decode(int num);
 
 // Main Function
 
-int main(void)
-{
+int main(void) {
 	// Set up the first buffer
     *(pixel_ctrl_ptr + 1) = (int)Buffer1;
     wait_for_vsync(); // Swap front and back buffers
@@ -289,7 +295,7 @@ int main(void)
         }
     }
 
-    while(1) { // new game started of game
+    while(1) { // new game start
         struct pizza orders[4];
         struct pizza current_order;
         int point_counter = 0;
@@ -310,7 +316,6 @@ int main(void)
             if(pizza_type != 0) initialize_pizza(orders + i, pizza_type); // make sure the pizza isn't blank (it shouldn't be)
         }
         initialize_pizza(&current_order, 0); // empty pizza
-
 
         // initialize the timer: 5 seconds start (sounds play for 3 seconds)
         initialize_timer(CLOCK_FRQ, 5);
@@ -535,6 +540,7 @@ int main(void)
 		wait_for_vsync(); 
         pixel_buffer_start = *(pixel_ctrl_ptr + 1); 
 
+        // wait for player to reset game
         while(1){ 
 			int PS2_data, RVALID;
 
