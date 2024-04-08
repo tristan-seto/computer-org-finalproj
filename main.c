@@ -317,8 +317,8 @@ int main(void) {
         }
         initialize_pizza(&current_order, 0); // empty pizza
 
-        // initialize the timer: 5 seconds start (sounds play for 3 seconds)
-        initialize_timer(CLOCK_FRQ, 5);
+        // initialize the timer: 4 seconds start (sounds play for 3 seconds)
+        initialize_timer(CLOCK_FRQ, 4);
         int time_left = get_time();
         while(time_left != 0){
             // display 3, 2, 1 on screen
@@ -327,7 +327,7 @@ int main(void) {
 			int PS2_data, RVALID;
 			PS2_data = *(PS2_ptr); // read the Data register in the PS/2 port
 			RVALID = PS2_data & 0x8000; // extract the RVALID field
-			
+		
 			if (RVALID){
 				byte1 = byte2;
 				byte2 = byte3;
@@ -387,6 +387,13 @@ int main(void) {
         while(get_time() != 0) {
             
             int PS2_data, RVALID;
+
+            // to terminate the game early, press KEY[0]:
+            int edge_cap = *(KEYs + 3); // read from edge capture register
+            if((edge_cap & 0x1) == 0x1) { // KEY0 pressed
+                *(KEYs + 3) = 0x1; // clear edge register
+                break; // terminate early
+            }
 
 			PS2_data = *(PS2_ptr); // read the Data register in the PS/2 port
 			RVALID = PS2_data & 0x8000; // extract the RVALID field
