@@ -13,3 +13,6 @@ The gameplay works as follows:
 - Perfect pizzas will receive 5 coins and a 10 second bonus on time. Semi-perfect pizzas will receive partial points.
 - The De1-SoC board will display the points on the HEX Display, while LEDs will count down the time (in binary).
 - The player can play the game as many time as they would like by restarting the game at the beginning.
+
+The game can be previewed by copy+pasting the code from main.c into this link:
+https://cpulator.01xz.net/?sys=nios-de1soc
